@@ -1,5 +1,10 @@
 # mcp-xray-pilot
 
+[![npm version](https://img.shields.io/npm/v/mcp-xray-pilot.svg)](https://www.npmjs.com/package/mcp-xray-pilot)
+[![npm downloads](https://img.shields.io/npm/dm/mcp-xray-pilot.svg)](https://www.npmjs.com/package/mcp-xray-pilot)
+[![node](https://img.shields.io/node/v/mcp-xray-pilot.svg)](https://nodejs.org)
+[![license](https://img.shields.io/npm/l/mcp-xray-pilot.svg)](./LICENSE)
+
 [Русская версия ниже / Russian version below](#mcp-xray-pilot-ru)
 
 A Model Context Protocol (MCP) server that gives an LLM offline access to the
