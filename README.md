@@ -10,8 +10,9 @@
 A Model Context Protocol (MCP) server that gives an LLM offline access to the
 official **xray-core** documentation, plus deep structural validation,
 best-practice lint, a protocol/transport/security compatibility matrix, a
-geosite/geoip catalogue, an alternative-stack suggester and a multi-config
-merge helper.
+**full v2fly geosite catalogue (~1500 categories)**, an alternative-stack
+suggester, REALITY keypair / shortId generators, a live SNI target validator,
+a curated SNI suggester per exit-country and a multi-config merge helper.
 
 ## What it does
 
@@ -34,7 +35,12 @@ merge helper.
   fingerprint enum, ALPN collisions, geosite/geoip typo catcher, protocol
   × transport × security incompatibilities, `xhttp.path` leading slash,
   `geoip:private` block rule, sniffing on 80/443 etc.
-- **Geo catalogue**: search ~500 known geoip/geosite tags by substring.
+- **Geo catalogue**: search ~1500 known geoip/geosite tags by substring (full
+  v2fly/domain-list-community catalogue, hydrated from `data/geocatalogue.json`).
+- **REALITY toolbelt**: `xray_generate_reality_keypair` (drop-in replacement
+  for `xray x25519`), `xray_generate_short_ids` (cryptographically random,
+  legacy-empty prefix), `xray_validate_sni_target` (live TLS 1.3 + h2 probe),
+  `xray_suggest_sni_for_country` (curated REALITY fronts per exit-country).
 - **Compares protocols**: side-by-side table of vless/vmess/trojan/ss/
   hysteria2/wireguard on transports, security, anti-DPI, mobile, battery.
 - **Recommends a stack** for a stated goal (anti-DPI in RU/IR/CN, low
@@ -51,13 +57,44 @@ merge helper.
 | `xray_search`              | Full-text search over all cached docs. Returns ranked hits + snippets.                |
 | `xray_validate_config`     | Structural+schema validation of an xray JSON config (Zod under the hood).             |
 | `xray_lint`                | ~20 best-practice lint rules. Returns issues with severity, rule id, JSON-pointer.    |
-| `xray_geo_search`          | Substring search over the embedded geosite/geoip catalogue.                           |
+| `xray_geo_search`          | Substring search over the embedded geosite/geoip catalogue (~1500 tags).              |
 | `xray_diff_protocols`      | Side-by-side feature table for two protocols.                                         |
 | `xray_suggest_alternative` | Recommend protocol+transport+security for a goal (anti-DPI / battery / latency / …). |
+| `xray_generate_short_ids`  | Cryptographically random REALITY shortIds (default `[4,8,16]` bytes, legacy empty prefix). |
+| `xray_generate_reality_keypair` | Fresh REALITY X25519 keypair, base64url 43 chars — drop-in for `xray x25519`. |
+| `xray_validate_sni_target` | Live TLS 1.3 + ALPN h2 + HTTP probe of a candidate REALITY target host.               |
+| `xray_suggest_sni_for_country` | Curated REALITY SNI/target hosts per exit-country (DE/PL/NL/FR/LV/SE/FI/US/UK/JP/SG/AU/CA). |
 | `xray_merge_configs`       | Merge N xray configs with tag-collision resolution and conflict warnings.             |
 | `xray_github_search`       | Search issues/PRs/discussions across XTLS GitHub repos (Xray-core/REALITY/docs).      |
 | `xray_github_fetch_issue`  | Fetch one issue/PR/discussion with full body + top comments.                          |
-| `xray_refresh_cache`       | Bulk re-fetch cached docs (`scope: all/stale/category`). Optional `discover` for new upstream slugs. |
+| `xray_refresh_cache`       | Bulk re-fetch cached docs (`scope: all/stale/category`). Optional `discover` for new upstream slugs. Optional `refresh_geocatalogue: true` to also re-pull the v2fly category list. |
+
+Total: **16 tools**.
+
+### Quick toolbelt
+
+Generate a REALITY keypair (server-side priv + client-side pub):
+
+```jsonc
+// xray_generate_reality_keypair {}
+{
+  "privateKey": "MNCibkT-h5bCF6iknJG0rJdHdfUjT7VugHgSX9BRWUY",
+  "publicKey": "ffvf0eNwnLhgK-axt3rajJIAoHKv0rX4xkw5KyImn38",
+  "note": "Server: paste privateKey into inbound realitySettings.privateKey. Clients: paste publicKey into outbound realitySettings.publicKey. Format matches `xray x25519` output exactly."
+}
+```
+
+Live-check a candidate REALITY SNI:
+
+```jsonc
+// xray_validate_sni_target { "host": "www.onet.pl" }
+{
+  "host": "www.onet.pl", "port": 443, "ok": true,
+  "tls_version": "TLSv1.3", "alpn": "h2", "http_status": 200,
+  "cert_subject": "www.onet.pl", "cert_san_count": 4,
+  "latency_ms": 312, "issues": []
+}
+```
 
 It also exposes a single MCP **resource**: `xray://docs/index` — the raw
 `_index.json` of cached topics.
@@ -258,7 +295,7 @@ warning in the response.
 
 ## Roadmap
 
-See [ROADMAP.md](./ROADMAP.md). All v0.1–v0.10 milestones are checked off.
+See [ROADMAP.md](./ROADMAP.md). All v0.1–v0.11 milestones are checked off.
 
 ## License
 
@@ -295,7 +332,12 @@ MCP-сервер, дающий LLM офлайн-доступ к официаль
   ALPN collisions, geo typo catcher, protocol × transport × security
   несовместимости, `xhttp.path` слеш, `geoip:private` block, sniffing на
   80/443 и т.д.
-- **Geo catalogue**: поиск по ~500 известным geoip/geosite тегам.
+- **Geo catalogue**: поиск по ~1500 известным geoip/geosite тегам (полный
+  v2fly/domain-list-community каталог, гидратируется из `data/geocatalogue.json`).
+- **REALITY toolbelt**: `xray_generate_reality_keypair` (drop-in замена
+  `xray x25519`), `xray_generate_short_ids` (криптослучайные, с empty-prefix
+  для легаси), `xray_validate_sni_target` (live TLS 1.3 + h2 проба),
+  `xray_suggest_sni_for_country` (курируемые REALITY-фронты по стране exit'а).
 - **Сравнение протоколов**: таблица vless/vmess/trojan/ss/hysteria2/
   wireguard по transports, security, anti-DPI, mobile, battery.
 - **Рекомендует стек** под цель (anti-DPI в РФ/Иране/КНР, low-latency,
@@ -312,13 +354,46 @@ MCP-сервер, дающий LLM офлайн-доступ к официаль
 | `xray_search`              | Полнотекстовый поиск по докам. Хиты + сниппеты.                                         |
 | `xray_validate_config`     | Структурная валидация + Zod-схемы по протоколу/transport/security.                      |
 | `xray_lint`                | ~20 правил best-practice. Issues с severity, rule id, JSON-pointer.                     |
-| `xray_geo_search`          | Поиск по embedded каталогу geosite/geoip по подстроке.                                  |
+| `xray_geo_search`          | Поиск по embedded каталогу geosite/geoip по подстроке (~1500 тегов).                    |
 | `xray_diff_protocols`      | Side-by-side таблица фич двух протоколов.                                               |
 | `xray_suggest_alternative` | Рекомендация protocol+transport+security под цель.                                      |
+| `xray_generate_short_ids`  | Криптослучайные REALITY shortIds (default `[4,8,16]` байт, с empty-prefix для легаси).  |
+| `xray_generate_reality_keypair` | Свежая X25519 пара REALITY, base64url 43 chars — drop-in для `xray x25519`.        |
+| `xray_validate_sni_target` | Live проба TLS 1.3 + ALPN h2 + HTTP кандидата на REALITY target.                        |
+| `xray_suggest_sni_for_country` | Курируемые REALITY-фронты по стране exit'а (DE/PL/NL/FR/LV/SE/FI/US/UK/JP/SG/AU/CA). |
 | `xray_merge_configs`       | Слить N конфигов с разрешением коллизий тегов.                                          |
 | `xray_github_search`       | Поиск issues/PR/discussions по XTLS GitHub репозиториям.                                |
 | `xray_github_fetch_issue`  | Получить одну issue/PR/discussion с полным body + топ комментариев.                     |
-| `xray_refresh_cache`       | Bulk перезатяжка кеша доков (`scope: all/stale/category`). Опц. `discover` для новых slug'ов. |
+| `xray_refresh_cache`       | Bulk перезатяжка кеша доков (`scope: all/stale/category`). Опц. `discover` + `refresh_geocatalogue: true` (заодно перетянет v2fly категории). |
+
+Всего: **16 тулов**.
+
+### Quick toolbelt
+
+Сгенерить REALITY keypair (priv для сервера, pub для клиентов):
+
+```jsonc
+// xray_generate_reality_keypair {}
+{
+  "privateKey": "MNCibkT-h5bCF6iknJG0rJdHdfUjT7VugHgSX9BRWUY",
+  "publicKey": "ffvf0eNwnLhgK-axt3rajJIAoHKv0rX4xkw5KyImn38",
+  "note": "Format matches `xray x25519` output exactly."
+}
+```
+
+Live-проверить кандидата на REALITY SNI:
+
+```jsonc
+// xray_validate_sni_target { "host": "www.onet.pl" }
+{
+  "host": "www.onet.pl", "port": 443, "ok": true,
+  "tls_version": "TLSv1.3", "alpn": "h2", "http_status": 200,
+  "cert_subject": "www.onet.pl", "cert_san_count": 4,
+  "latency_ms": 312, "issues": []
+}
+```
+
+> ⚠️ Проба идёт с локальной машины, где запущен `mcp-xray-pilot`. Для решения «работает ли SNI из РФ» — гоняй с РФ-IP отдельно.
 
 Также один MCP **ресурс**: `xray://docs/index`.
 
@@ -500,7 +575,7 @@ $env:GITHUB_TOKEN = "ghp_xxx"         # PowerShell
 
 ## Roadmap
 
-См. [ROADMAP.md](./ROADMAP.md) — все вехи v0.1–v0.10 закрыты.
+См. [ROADMAP.md](./ROADMAP.md) — все вехи v0.1–v0.11 закрыты.
 
 ## Лицензия
 

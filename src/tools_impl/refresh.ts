@@ -7,6 +7,10 @@
  */
 
 import { refreshDocs, type RefreshResult, type RefreshScope } from "../docs.js";
+import {
+  refreshGeoCatalogue,
+  type GeoRefreshResult,
+} from "./geocatalogue_fetch.js";
 import type { Category } from "../types.js";
 
 const VALID_SCOPES: RefreshScope[] = ["all", "stale", "category"];
@@ -23,9 +27,14 @@ export interface RefreshArgs {
   category?: string;
   max_age_days?: number;
   discover?: boolean;
+  refresh_geocatalogue?: boolean;
 }
 
-export async function runRefresh(args: RefreshArgs): Promise<RefreshResult> {
+export interface RefreshArgsResult extends RefreshResult {
+  geocatalogue?: GeoRefreshResult | { updated: false; error: string };
+}
+
+export async function runRefresh(args: RefreshArgs): Promise<RefreshArgsResult> {
   const scope = (args.scope ?? "stale") as RefreshScope;
   if (!VALID_SCOPES.includes(scope)) {
     throw new Error(
@@ -55,10 +64,20 @@ export async function runRefresh(args: RefreshArgs): Promise<RefreshResult> {
     throw new Error("max_age_days must be a number in [1, 365]");
   }
 
-  return refreshDocs({
+  const docsResult = await refreshDocs({
     scope,
     category,
     max_age_days,
     discover: !!args.discover,
   });
+
+  const result: RefreshArgsResult = { ...docsResult };
+  if (args.refresh_geocatalogue) {
+    try {
+      result.geocatalogue = await refreshGeoCatalogue();
+    } catch (e) {
+      result.geocatalogue = { updated: false, error: (e as Error).message };
+    }
+  }
+  return result;
 }

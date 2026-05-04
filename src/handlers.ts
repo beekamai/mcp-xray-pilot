@@ -18,6 +18,14 @@ import {
   type RepoKey,
   type RepoKeyOrAll,
 } from "./tools_impl/github.js";
+import { generateShortIds, type GenShortIdsArgs } from "./tools_impl/gen_short_ids.js";
+import { generateRealityKeypair } from "./tools_impl/gen_reality_keypair.js";
+import { validateSniTarget, type ValidateSniArgs } from "./tools_impl/validate_sni.js";
+import {
+  suggestSniForCountry,
+  listSupportedCountries,
+  type SuggestSniArgs,
+} from "./tools_impl/suggest_sni.js";
 import type { Category } from "./types.js";
 
 interface McpContent {
@@ -217,6 +225,44 @@ async function refreshHandler(args: RefreshArgs): Promise<McpResponse> {
   }
 }
 
+async function genShortIdsHandler(args: GenShortIdsArgs): Promise<McpResponse> {
+  try {
+    return json(generateShortIds(args));
+  } catch (e) {
+    return err((e as Error).message);
+  }
+}
+
+async function genRealityKeypairHandler(): Promise<McpResponse> {
+  try {
+    return json(generateRealityKeypair());
+  } catch (e) {
+    return err(`xray_generate_reality_keypair failed: ${(e as Error).message}`);
+  }
+}
+
+async function validateSniHandler(args: ValidateSniArgs): Promise<McpResponse> {
+  if (!args.host || !args.host.trim()) return err("Missing required parameter: host");
+  try {
+    return json(await validateSniTarget(args));
+  } catch (e) {
+    return err(`xray_validate_sni_target failed: ${(e as Error).message}`);
+  }
+}
+
+async function suggestSniHandler(args: SuggestSniArgs): Promise<McpResponse> {
+  if (!args.country_code) {
+    return err(
+      `Missing required parameter: country_code. Supported: ${listSupportedCountries().join(", ")}`,
+    );
+  }
+  try {
+    return json(suggestSniForCountry(args));
+  } catch (e) {
+    return err((e as Error).message);
+  }
+}
+
 async function mergeHandler(args: { configs?: string[] }): Promise<McpResponse> {
   if (!Array.isArray(args.configs) || args.configs.length < 2) {
     return err("Need at least 2 configs in `configs[]`.");
@@ -252,6 +298,14 @@ export async function dispatch(
       return suggestHandler(args as { goal?: string; current_config?: string });
     case "xray_merge_configs":
       return mergeHandler(args as { configs?: string[] });
+    case "xray_generate_short_ids":
+      return genShortIdsHandler(args as GenShortIdsArgs);
+    case "xray_generate_reality_keypair":
+      return genRealityKeypairHandler();
+    case "xray_validate_sni_target":
+      return validateSniHandler(args as ValidateSniArgs);
+    case "xray_suggest_sni_for_country":
+      return suggestSniHandler(args as SuggestSniArgs);
     case "xray_refresh_cache":
       return refreshHandler(args as RefreshArgs);
     case "xray_github_search":

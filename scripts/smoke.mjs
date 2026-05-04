@@ -131,8 +131,84 @@ const badConfig = JSON.stringify({
     console.log("MERGE:", m.result?.content?.[0]?.text?.slice(0, 300));
   }
 
+  /* v0.11+ generators / curators */
+  let exitCode = 0;
+  if (names.includes("xray_generate_short_ids")) {
+    const r = await call("tools/call", { name: "xray_generate_short_ids", arguments: { count: 4 } });
+    console.log("SHORT_IDS:", r.result?.content?.[0]?.text?.slice(0, 300));
+  }
+  if (names.includes("xray_generate_reality_keypair")) {
+    const r = await call("tools/call", { name: "xray_generate_reality_keypair", arguments: {} });
+    const txt = r.result?.content?.[0]?.text ?? "";
+    console.log("KEYPAIR:", txt.slice(0, 400));
+    /* Parse + assert: 43-char base64url for both keys + lint must pass. */
+    let priv = "", pub = "";
+    try {
+      const obj = JSON.parse(txt);
+      priv = obj.privateKey;
+      pub = obj.publicKey;
+    } catch (e) { console.error("KEYPAIR parse failed:", e); exitCode = 1; }
+    if (priv.length !== 43 || pub.length !== 43) {
+      console.error(`KEYPAIR length wrong: priv=${priv.length} pub=${pub.length} (need 43)`);
+      exitCode = 1;
+    } else {
+      console.log("KEYPAIR length OK (43 chars each)");
+    }
+    /* Plug into a config and lint to confirm reality_pubkey_format passes. */
+    const cfgWithGenKeys = JSON.stringify({
+      log: { loglevel: "warning" },
+      inbounds: [
+        {
+          tag: "in", port: 443, protocol: "vless",
+          settings: { clients: [{ id: "5783a3e7-e373-51cd-8642-c83782b807c5", flow: "xtls-rprx-vision" }], decryption: "none" },
+          streamSettings: {
+            network: "raw", security: "reality",
+            realitySettings: {
+              target: "www.onet.pl:443",
+              serverNames: ["www.onet.pl"],
+              privateKey: priv,
+              publicKey: pub,
+              shortIds: ["abcd"],
+              fingerprint: "chrome",
+            },
+          },
+          sniffing: { enabled: true, destOverride: ["http", "tls"] },
+        },
+      ],
+      outbounds: [{ tag: "out", protocol: "freedom" }],
+    });
+    const l = await call("tools/call", { name: "xray_lint", arguments: { config: cfgWithGenKeys } });
+    const lintTxt = l.result?.content?.[0]?.text ?? "";
+    if (/"reality_pubkey_format"/.test(lintTxt) && /"severity":\s*"error"/.test(lintTxt) && /reality_pubkey_format[\s\S]{0,80}error/.test(lintTxt)) {
+      console.error("LINT failed: reality_pubkey_format errored on generated keys");
+      console.error(lintTxt.slice(0, 800));
+      exitCode = 1;
+    } else {
+      console.log("LINT reality_pubkey_format passes on generated keys");
+    }
+  }
+  if (names.includes("xray_suggest_sni_for_country")) {
+    const r = await call("tools/call", { name: "xray_suggest_sni_for_country", arguments: { country_code: "PL" } });
+    const txt = r.result?.content?.[0]?.text ?? "";
+    console.log("SUGGEST_SNI PL:", txt.slice(0, 400));
+    if (!/onet\.pl/.test(txt) || !/allegro\.pl/.test(txt)) {
+      console.error("SUGGEST_SNI: missing expected onet.pl / allegro.pl");
+      exitCode = 1;
+    }
+  }
+  if (names.includes("xray_geo_search")) {
+    const r = await call("tools/call", { name: "xray_geo_search", arguments: { query: "yandex" } });
+    const txt = r.result?.content?.[0]?.text ?? "";
+    console.log("GEO_SEARCH yandex:", txt.slice(0, 400));
+    if (!/geosite:yandex/.test(txt)) {
+      console.error("GEO_SEARCH: yandex not found — geocatalogue.json missing or stale");
+      exitCode = 1;
+    }
+  }
+  console.log("TOOLS COUNT:", names.length);
+
   child.stdin.end();
-  setTimeout(() => process.exit(0), 200);
+  setTimeout(() => process.exit(exitCode), 200);
 })().catch((e) => {
   console.error("smoke failed:", e);
   child.kill();

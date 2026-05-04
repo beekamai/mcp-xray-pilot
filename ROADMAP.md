@@ -98,6 +98,32 @@ Incremental plan for deepening `xray_validate_config` and `xray_lint`.
   (-2/-3 suffix), warns on inbound port collisions and disagreeing
   singletons (log/policy/api/...).
 
+## v0.11 — done (Phase 10: REALITY toolbelt + full geosite catalogue)
+
+- ✅ `xray_generate_reality_keypair`: fresh X25519 keypair as 43-char
+  base64url, no padding — drop-in replacement for `xray x25519`. Verified
+  to pass the `reality_pubkey_format` lint rule.
+- ✅ `xray_generate_short_ids`: cryptographically random REALITY shortIds.
+  Default `lengths: [4, 8, 16]` bytes, `count: 3`. Always prepends an
+  empty string when `count > 1` for legacy clients. Warns when length > 8
+  bytes (xray-core caps shortId at 8 bytes / 16 hex chars).
+- ✅ `xray_validate_sni_target`: live TLS handshake + ALPN + HEAD probe of
+  a candidate REALITY target. Reports `tls_version`, `alpn`, `http_status`,
+  `cert_subject`, `cert_san_count`, `latency_ms` and a list of issues.
+  Probe runs from the local machine — see `notes` for caveats.
+- ✅ `xray_suggest_sni_for_country`: curated REALITY-front catalogue per
+  exit-country (DE, PL, NL, FR, LV, SE, FI, US, GB/UK, JP, SG, AU, CA)
+  plus a `generic_safe` worldwide list.
+- ✅ Full v2fly geosite catalogue: ~1500 categories pulled from
+  `v2fly/domain-list-community/data/` into `data/geocatalogue.json` via
+  `npm run fetch-geocatalogue`. `xray_geo_search` now finds every category
+  upstream defines (e.g. `geosite:yandex`). The `geo_unknown_category`
+  lint rule no longer false-positives on legitimate categories.
+- ✅ `xray_refresh_cache` accepts `refresh_geocatalogue: true` to also
+  re-pull the v2fly category list in the same call.
+
+Tools total: **16**.
+
 ## v0.10 — done (Phase 9: cache refresh tool + CI)
 
 - ✅ `xray_refresh_cache` MCP tool: `scope: all | stale | category`,

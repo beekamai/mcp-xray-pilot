@@ -2,13 +2,23 @@
  * Embedded catalogue of well-known geosite/geoip categories.
  *
  * Sources:
- *   - github.com/v2fly/domain-list-community  (geosite)
+ *   - github.com/v2fly/domain-list-community  (geosite — full list, hydrated
+ *                                              from data/geocatalogue.json
+ *                                              produced by `npm run
+ *                                              fetch-geocatalogue`)
  *   - github.com/v2fly/geoip                  (geoip)
  *   - github.com/runetfreedom/russia-v2ray-rules-dat  (Russia-flavoured set)
  *
- * Hand-curated subset of the most-referenced tags. Not exhaustive — used
- * as a "did you mean?" check, not as a hard error. Unknown tag → warn.
+ * The hand-curated GEOSITE_NAMES array below is the legacy fallback used
+ * when data/geocatalogue.json is missing (e.g. fresh clone before running
+ * the fetch script). With the JSON present we extend the catalogue with
+ * EVERY upstream category — typo-checks against a typo'd `geosite:yandex`
+ * now actually match.
  */
+
+import { readFileSync } from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 
 /* All ISO 3166-1 alpha-2 country codes (lowercase). Most are valid geoip:* /
  * geosite:geolocation-* tags. */
@@ -153,12 +163,50 @@ for (const code of ISO_COUNTRY_CODES) {
 /* geoip special */
 for (const t of GEOIP_SPECIAL) entries.push(geoip(t, `Special IP set: ${t}`));
 
-/* geosite well-known */
+/* geosite well-known (curated subset — descriptions richer than auto). */
 for (const t of GEOSITE_NAMES) entries.push(geosite(t, `Domain list: ${t}`));
 /* geosite per country (geolocation-XX) */
 for (const code of ISO_COUNTRY_CODES) {
   const human = COUNTRY_NAMES[code] ?? code.toUpperCase();
   entries.push(geosite(`geolocation-${code}`, `Domains geolocated to ${human}`));
+}
+
+/* ---- v0.11: hydrate the FULL upstream geosite catalogue from JSON ---- */
+
+interface GeoCataloguePayload {
+  fetched_at?: string;
+  source?: string;
+  count?: number;
+  names?: string[];
+}
+
+function loadFullGeositeNames(): string[] {
+  /* Resolve relative to this module's filesystem location.
+   * - source (tsx): src/data/geocatalogue.ts → ../../data/geocatalogue.json
+   * - dist (node):  dist/data/geocatalogue.js → ../../data/geocatalogue.json
+   * Both paths land on <repo>/data/geocatalogue.json.
+   */
+  try {
+    const here = path.dirname(fileURLToPath(import.meta.url));
+    const jsonPath = path.resolve(here, "..", "..", "data", "geocatalogue.json");
+    const raw = readFileSync(jsonPath, "utf8");
+    const data = JSON.parse(raw) as GeoCataloguePayload;
+    if (Array.isArray(data.names)) return data.names;
+    return [];
+  } catch {
+    /* No JSON yet → fall back to curated list only. Silent: the lint warning
+     * "geo_unknown_category" still works, just with a smaller corpus. */
+    return [];
+  }
+}
+
+const fullNames = loadFullGeositeNames();
+const seenGeosite = new Set(GEOSITE_NAMES);
+for (const code of ISO_COUNTRY_CODES) seenGeosite.add(`geolocation-${code}`);
+for (const name of fullNames) {
+  if (seenGeosite.has(name)) continue;
+  seenGeosite.add(name);
+  entries.push(geosite(name, `Domain list (v2fly upstream): ${name}`));
 }
 
 export const GEO_CATALOGUE: ReadonlyArray<GeoEntry> = entries;

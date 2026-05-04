@@ -264,7 +264,89 @@ export const TOOL_SCHEMAS = [
           description:
             "Also call the github tree API and return slugs that exist upstream but are not in DOCS_CATALOGUE (for manual addition to src/docs.ts).",
         },
+        refresh_geocatalogue: {
+          type: "boolean",
+          default: false,
+          description:
+            "Also re-pull the v2fly/domain-list-community category list into data/geocatalogue.json (used by xray_geo_search and the geo_unknown_category lint rule). Returns geocatalogue.{updated, count}.",
+        },
       },
+    },
+  },
+  {
+    name: "xray_generate_short_ids",
+    description:
+      "Generate cryptographically random REALITY shortIds. Returns N hex strings of " +
+      "varied byte-lengths (default [4, 8, 16] bytes → 8, 16, 32 hex chars). When " +
+      "count > 1 the first entry is the empty string for legacy-client compatibility. " +
+      "Drop the array straight into realitySettings.shortIds on inbound.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        count: {
+          type: "number",
+          minimum: 1,
+          maximum: 10,
+          default: 3,
+          description: "How many shortIds to produce (1..10). count > 1 prepends empty string.",
+        },
+        lengths: {
+          type: "array",
+          items: { type: "number", minimum: 1, maximum: 32 },
+          description:
+            "Byte lengths to round-robin through (1..32). Default: [4, 8, 16] bytes. Note: xray-core REALITY caps shortId at 8 bytes / 16 hex chars — entries above 8 are produced but xray will reject them; the response includes a warning when this happens.",
+        },
+      },
+    },
+  },
+  {
+    name: "xray_generate_reality_keypair",
+    description:
+      "Generate a fresh REALITY X25519 keypair. Returns base64url-encoded " +
+      "privateKey + publicKey (43 chars each, no padding) — exactly the format " +
+      "produced by the `xray x25519` CLI. Server: paste privateKey into inbound. " +
+      "Clients: paste publicKey into outbound.",
+    inputSchema: {
+      type: "object",
+      properties: {},
+    },
+  },
+  {
+    name: "xray_validate_sni_target",
+    description:
+      "Live-check a candidate REALITY target host: confirms TLS 1.3, ALPN h2, " +
+      "responds to HEAD /, presents a real cert. The probe runs from the LOCAL " +
+      "machine where mcp-xray-pilot lives — verdict reflects YOUR network's view, " +
+      "not necessarily a Russian residential. For RU-side checks, run from a РФ IP " +
+      "separately.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        host: { type: "string", description: 'SNI host, e.g. "www.onet.pl".' },
+        port: { type: "number", default: 443, minimum: 1, maximum: 65535 },
+        timeout_ms: { type: "number", default: 5000, minimum: 500, maximum: 30000 },
+      },
+      required: ["host"],
+    },
+  },
+  {
+    name: "xray_suggest_sni_for_country",
+    description:
+      "Suggest curated REALITY SNI/target hosts for an exit-node country. Returns " +
+      "popular legitimate sites known to run TLS 1.3 + h2 and not advertise as VPN " +
+      "providers — ideal REALITY fronts. Output sorted by suitability, plus a " +
+      "worldwide-safe `generic_safe` list. Pair with xray_validate_sni_target for a " +
+      "live handshake check before committing to a config.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        country_code: {
+          type: "string",
+          description: 'ISO 3166-1 alpha-2 code, e.g. "PL", "DE", "NL", "FR", "US".',
+        },
+        max_results: { type: "number", default: 5, minimum: 1, maximum: 20 },
+      },
+      required: ["country_code"],
     },
   },
   {

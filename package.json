@@ -1,6 +1,6 @@
 {
   "name": "mcp-xray-pilot",
-  "version": "0.10.1",
+  "version": "0.11.0",
   "description": "MCP server for xray-core: offline docs cache (auto-refresh), config validation, REALITY/XTLS lint, anti-DPI recipes, GitHub research from XTLS repos.",
   "main": "dist/index.js",
   "bin": {
@@ -40,6 +40,7 @@
   "files": [
     "dist",
     "data/docs",
+    "data/geocatalogue.json",
     "README.md",
     "LICENSE"
   ],
@@ -47,6 +48,7 @@
     "build": "tsc",
     "dev": "tsx src/index.ts",
     "fetch-docs": "tsx scripts/fetch-docs.ts",
+    "fetch-geocatalogue": "tsx scripts/fetch-geocatalogue.ts",
     "prepare": "npm run build",
     "prepublishOnly": "npm run build"
   },
