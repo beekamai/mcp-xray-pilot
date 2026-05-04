@@ -1,0 +1,62 @@
+{
+  "name": "mcp-xray-pilot",
+  "version": "0.10.0",
+  "description": "MCP server for xray-core: offline docs cache (auto-refresh), config validation, REALITY/XTLS lint, anti-DPI recipes, GitHub research from XTLS repos.",
+  "main": "dist/index.js",
+  "bin": {
+    "mcp-xray-pilot": "dist/index.js"
+  },
+  "type": "module",
+  "engines": {
+    "node": ">=18"
+  },
+  "author": "beekamai",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/beekamai/mcp-xray-pilot.git"
+  },
+  "homepage": "https://github.com/beekamai/mcp-xray-pilot#readme",
+  "bugs": {
+    "url": "https://github.com/beekamai/mcp-xray-pilot/issues"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "xray",
+    "xray-core",
+    "vless",
+    "reality",
+    "vmess",
+    "trojan",
+    "shadowsocks",
+    "vpn",
+    "anti-dpi",
+    "rkn",
+    "tspu",
+    "claude",
+    "claude-code"
+  ],
+  "files": [
+    "dist",
+    "data/docs",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsx src/index.ts",
+    "fetch-docs": "tsx scripts/fetch-docs.ts",
+    "prepare": "npm run build",
+    "prepublishOnly": "npm run build"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "tsx": "^4.19.2",
+    "typescript": "^5.6.3"
+  }
+}

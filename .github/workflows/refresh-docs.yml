@@ -1,0 +1,36 @@
+name: Refresh xray docs cache
+on:
+  schedule:
+    - cron: "0 6 * * 1"   # weekly Monday 06:00 UTC
+  workflow_dispatch:       # manual trigger
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - run: npm ci
+      - run: npm run fetch-docs -- --refresh
+      - name: Check for changes
+        id: diff
+        run: |
+          if [[ -n "$(git status --porcelain data/docs/)" ]]; then
+            echo "changed=true" >> $GITHUB_OUTPUT
+          else
+            echo "changed=false" >> $GITHUB_OUTPUT
+          fi
+      - name: Create PR
+        if: steps.diff.outputs.changed == 'true'
+        uses: peter-evans/create-pull-request@v6
+        with:
+          commit-message: "chore: refresh xray docs cache"
+          title: "chore: weekly xray docs cache refresh"
+          branch: chore/refresh-docs
+          body: "Auto-PR from weekly cron. Review the diff and merge if upstream changes look sane."
+          delete-branch: true
