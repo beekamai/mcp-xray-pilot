@@ -86,7 +86,8 @@ export const TOOL_SCHEMAS = [
       "catch: VLESS decryption mode, REALITY pubkey/shortId/target syntax, XTLS " +
       "vision flow compatibility, TLS fingerprint enum, ALPN collisions, geosite/" +
       "geoip catalogue check, protocol×transport×security compatibility matrix, " +
-      "private LAN block rule, sniffing on 80/443, etc. ~20 rules in v0.6.",
+      "private LAN block rule, sniffing on 80/443, DNS-over-proxy leaks, " +
+      "geosite categories absent from xray-core release dat. ~22 rules in v0.12.",
     inputSchema: {
       type: "object",
       properties: {

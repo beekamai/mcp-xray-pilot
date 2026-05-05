@@ -30,11 +30,13 @@ a curated SNI suggester per exit-country and a multi-config merge helper.
   tun), per-transport `*Settings` schemas (raw / xhttp / grpc / ws / mkcp /
   httpupgrade / hysteria), TLS / REALITY security blocks, routing tag
   cross-references.
-- **Lints** ~20 best-practice rules: VLESS `decryption: "none"`, REALITY
+- **Lints** ~22 best-practice rules: VLESS `decryption: "none"`, REALITY
   pubkey/shortId/target syntax, XTLS vision flow compatibility, TLS
   fingerprint enum, ALPN collisions, geosite/geoip typo catcher, protocol
   × transport × security incompatibilities, `xhttp.path` leading slash,
-  `geoip:private` block rule, sniffing on 80/443 etc.
+  `geoip:private` block rule, sniffing on 80/443, **DNS-over-proxy leaks
+  on `.ru` direct routing** (v0.12), **`geosite:` categories absent from
+  xray-core release `geosite.dat`** (v0.12) etc.
 - **Geo catalogue**: search ~1500 known geoip/geosite tags by substring (full
   v2fly/domain-list-community catalogue, hydrated from `data/geocatalogue.json`).
 - **REALITY toolbelt**: `xray_generate_reality_keypair` (drop-in replacement
@@ -56,7 +58,7 @@ a curated SNI suggester per exit-country and a multi-config merge helper.
 | `xray_fetch_topic`         | Fetch one topic as markdown. Network → fall back to bundled cache → update cache.     |
 | `xray_search`              | Full-text search over all cached docs. Returns ranked hits + snippets.                |
 | `xray_validate_config`     | Structural+schema validation of an xray JSON config (Zod under the hood).             |
-| `xray_lint`                | ~20 best-practice lint rules. Returns issues with severity, rule id, JSON-pointer.    |
+| `xray_lint`                | ~22 best-practice lint rules. Returns issues with severity, rule id, JSON-pointer.    |
 | `xray_geo_search`          | Substring search over the embedded geosite/geoip catalogue (~1500 tags).              |
 | `xray_diff_protocols`      | Side-by-side feature table for two protocols.                                         |
 | `xray_suggest_alternative` | Recommend protocol+transport+security for a goal (anti-DPI / battery / latency / …). |
@@ -327,11 +329,13 @@ MCP-сервер, дающий LLM офлайн-доступ к официаль
   tun), per-transport `*Settings` (raw / xhttp / grpc / ws / mkcp /
   httpupgrade / hysteria), security блоки TLS/REALITY, routing tag
   cross-references.
-- **Lint** ~20 правил: VLESS `decryption: "none"`, REALITY pubkey/shortId/
+- **Lint** ~22 правил: VLESS `decryption: "none"`, REALITY pubkey/shortId/
   target syntax, XTLS vision flow compatibility, TLS fingerprint enum,
   ALPN collisions, geo typo catcher, protocol × transport × security
   несовместимости, `xhttp.path` слеш, `geoip:private` block, sniffing на
-  80/443 и т.д.
+  80/443, **утечка DNS через прокси ломает `.ru` direct routing** (v0.12),
+  **`geosite:` категории, которых нет в xray-core release `geosite.dat`**
+  (v0.12) и т.д.
 - **Geo catalogue**: поиск по ~1500 известным geoip/geosite тегам (полный
   v2fly/domain-list-community каталог, гидратируется из `data/geocatalogue.json`).
 - **REALITY toolbelt**: `xray_generate_reality_keypair` (drop-in замена

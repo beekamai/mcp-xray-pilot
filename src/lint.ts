@@ -18,7 +18,7 @@
 
 import type { LintIssue, LintRule } from "./types.js";
 import { tlsFingerprints, alpnValues } from "./schemas/security/index.js";
-import { isKnownGeoTag } from "./data/geocatalogue.js";
+import { isKnownGeoTag, isGeositeInXrayRelease } from "./data/geocatalogue.js";
 import {
   checkFlow,
   isProtocolSecuritySupported,
@@ -672,6 +672,178 @@ const RULES: { id: string; fn: LintRule }[] = [
           });
         }
       });
+      return out;
+    },
+  },
+
+  /* ---------- v0.12 dns-leak + xray-release geosite checks ---------- */
+  {
+    /* DNS server IPs (1.1.1.1, 8.8.8.8, DoH like https://1.0.0.1/dns-query)
+     * MUST be routed to the "direct" outbound on client configs — otherwise
+     * resolver traffic flows through the proxy. If the proxy server has
+     * BLOCK rules for some domains (e.g. RU bank domains on a foreign exit),
+     * those DNS lookups fail with NXDOMAIN and domain-based direct routing
+     * silently breaks. Skipped on server-side configs that don't have a
+     * proxy outbound (no traffic exits via a remote relay). */
+    id: "dns_through_proxy_leaks_to_blocked_outbound",
+    fn: (c) => {
+      const out: LintIssue[] = [];
+      if (!isObject(c)) return out;
+
+      /* Server-side guard: only meaningful when there is a proxy-style
+       * outbound the DNS would otherwise leak through. "freedom" or
+       * "blackhole" alone don't leak anywhere external. */
+      const hasProxyOutbound = getOutbounds(c).some((o) => {
+        const proto = o["protocol"];
+        if (typeof proto !== "string") return false;
+        return [
+          "vless",
+          "vmess",
+          "trojan",
+          "shadowsocks",
+          "hysteria",
+          "hysteria2",
+          "wireguard",
+          "socks",
+          "http",
+        ].includes(proto);
+      });
+      if (!hasProxyOutbound) return out;
+
+      const dns = c["dns"];
+      const servers = isObject(dns) ? dns["servers"] : undefined;
+      if (!Array.isArray(servers) || servers.length === 0) return out;
+
+      /* Collect every server entry into a literal-IP set. Skip plain
+       * domain entries ("dns.google") and "localhost" — those resolve via
+       * the system stub and don't generate proxy traffic. */
+      const dnsIps = new Set<string>();
+      const ipv4Re = /^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/;
+      const ipv6Re = /^[0-9a-fA-F:]+$/;
+      const dohWithIp = /^https?:\/\/(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})(?::\d+)?\//;
+
+      const visitServer = (s: unknown): void => {
+        let host = "";
+        if (typeof s === "string") host = s;
+        else if (isObject(s) && typeof s["address"] === "string") host = s["address"];
+        else return;
+        if (host === "localhost") return;
+        const m = dohWithIp.exec(host);
+        if (m) {
+          dnsIps.add(m[1]);
+          return;
+        }
+        if (ipv4Re.test(host)) dnsIps.add(host);
+        else if (host.includes(":") && !host.includes("/") && ipv6Re.test(host))
+          dnsIps.add(host);
+      };
+      for (const s of servers) visitServer(s);
+
+      if (dnsIps.size === 0) return out;
+
+      /* Look for ANY rule that pins DNS-bound traffic to direct.
+       *   - outboundTag = direct + ip[] contains one of dnsIps
+       *   - outboundTag = direct + port = "53" (or numeric 53)
+       *   - port = 53 + outboundTag = direct (covers both shapes)
+       * Tag name is matched case-insensitively against /direct/ — covers
+       * "direct", "out-direct", "Direct" etc. */
+      const portIs53 = (p: unknown): boolean =>
+        p === 53 || p === "53" || (typeof p === "string" && /(?:^|,)\s*53(?:\s*,|$)/.test(p));
+      const ipMatchesDns = (ipField: unknown): boolean => {
+        if (!Array.isArray(ipField)) return false;
+        return ipField.some((x) => typeof x === "string" && dnsIps.has(x));
+      };
+
+      const hasDirectRule = getRoutingRules(c).some((r) => {
+        const ot = r["outboundTag"];
+        if (typeof ot !== "string" || !/direct/i.test(ot)) return false;
+        if (portIs53(r["port"])) return true;
+        if (ipMatchesDns(r["ip"])) return true;
+        return false;
+      });
+
+      if (!hasDirectRule) {
+        const ipsList = [...dnsIps].slice(0, 4).join(", ") +
+          (dnsIps.size > 4 ? `, +${dnsIps.size - 4} more` : "");
+        out.push({
+          rule: "dns_through_proxy_leaks_to_blocked_outbound",
+          id: "dns_through_proxy_leaks_to_blocked_outbound",
+          severity: "error",
+          message:
+            `DNS servers (${ipsList}) have no routing rule sending them to "direct" outbound. ` +
+            `On client configs this leaks DNS through the VPN proxy — if the proxy server has BLOCK rules ` +
+            `for some domains (e.g. RU), DNS lookups for those domains fail with NXDOMAIN, breaking domain-based ` +
+            `direct routing. Add: { "type":"field", "outboundTag":"direct", "port":"53" } and similar for DoH IPs.`,
+          where: "/dns/servers",
+        });
+      }
+      return out;
+    },
+  },
+  {
+    /* `geosite:NAME` references must resolve against xray-core's release
+     * geosite.dat — not just the upstream v2fly source tree. v2fly source
+     * has ~1500 categories; the release build curates ~150. xray-core
+     * fails to start when a routing rule references a category absent
+     * from the dat file. Common trap: `geosite:geolocation-ru` exists in
+     * v2fly source but NOT in any released geosite.dat — use
+     * `geosite:category-ru` instead. */
+    id: "geosite_not_in_xray_release",
+    fn: (c) => {
+      const out: LintIssue[] = [];
+      const seen = new Set<string>();
+
+      const visitTag = (tag: string, where: string): void => {
+        if (!tag.startsWith("geosite:")) return;
+        if (!isKnownGeoTag(tag)) return; /* covered by geo_unknown_category */
+        if (isGeositeInXrayRelease(tag)) return;
+        const dedupeKey = tag + "@" + where;
+        if (seen.has(dedupeKey)) return;
+        seen.add(dedupeKey);
+        const name = tag.slice("geosite:".length).split("@")[0];
+        const hint =
+          name === "geolocation-ru"
+            ? " Use geosite:category-ru instead."
+            : name === "geolocation-cn"
+            ? ""
+            : ` Try a category-prefixed alternative (geosite:category-${name}) or check xray_geo_search.`;
+        out.push({
+          rule: "geosite_not_in_xray_release",
+          id: "geosite_not_in_xray_release",
+          severity: "warn",
+          message:
+            `${tag} is in v2fly source but NOT in the xray-core release geosite.dat — ` +
+            `xray will fail to start with this rule.${hint}`,
+          where,
+        });
+      };
+
+      getRoutingRules(c).forEach((r, i) => {
+        const dom = r["domain"];
+        if (Array.isArray(dom)) {
+          dom.forEach((t, j) => {
+            if (typeof t === "string")
+              visitTag(t, `/routing/rules/${i}/domain/${j}`);
+          });
+        }
+      });
+
+      if (isObject(c)) {
+        const dns = c["dns"];
+        const servers = isObject(dns) ? dns["servers"] : undefined;
+        if (Array.isArray(servers)) {
+          servers.forEach((s, i) => {
+            if (!isObject(s)) return;
+            const domains = s["domains"];
+            if (!Array.isArray(domains)) return;
+            domains.forEach((t, j) => {
+              if (typeof t === "string")
+                visitTag(t, `/dns/servers/${i}/domains/${j}`);
+            });
+          });
+        }
+      }
+
       return out;
     },
   },

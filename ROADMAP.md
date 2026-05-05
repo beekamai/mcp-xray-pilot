@@ -98,6 +98,30 @@ Incremental plan for deepening `xray_validate_config` and `xray_lint`.
   (-2/-3 suffix), warns on inbound port collisions and disagreeing
   singletons (log/policy/api/...).
 
+## v0.12 — done (Phase 11: DNS-leak lint + xray-release geosite split)
+
+- ✅ Lint rule `dns_through_proxy_leaks_to_blocked_outbound` (severity:
+  **error**). Fires when `dns.servers[]` contains literal IPs (`1.1.1.1`,
+  `8.8.8.8`) or DoH URLs over IP (`https://1.0.0.1/dns-query`) AND there
+  is no routing rule pinning those resolvers to `direct` (or all of port
+  53). Skipped on server-side configs that lack a proxy-style outbound.
+  Catches the silent breakage where a foreign exit's BLOCK-on-RU rules
+  turn `.ru` direct routing into NXDOMAIN on the client.
+- ✅ Lint rule `geosite_not_in_xray_release` (severity: **warn**). Fires
+  when `routing.rules[].domain[]` or `dns.servers[].domains[]` reference a
+  `geosite:NAME` that exists in the v2fly source tree but is absent from
+  xray-core's release `geosite.dat`. Classic trap:
+  `geosite:geolocation-ru` (suggests `geosite:category-ru`).
+- ✅ `data/geocatalogue.json` now also stores
+  `release_count` + `release_names[]` — pulled from
+  `Loyalsoldier/v2ray-rules-dat`'s `geosite.dat.short` release asset by
+  `npm run fetch-geocatalogue`. Falls back to a hand-curated ~140-entry
+  whitelist when the network probe fails.
+- ✅ `xray_geo_search` hits now expose `in_v2fly_source` and
+  `in_xray_release` booleans so an LLM can warn the user before they
+  copy a v2fly-only category into a routing rule.
+- ✅ Lint rule count: **22**.
+
 ## v0.11 — done (Phase 10: REALITY toolbelt + full geosite catalogue)
 
 - ✅ `xray_generate_reality_keypair`: fresh X25519 keypair as 43-char

@@ -19,6 +19,7 @@
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { RELEASE_FALLBACK_NAMES } from "../tools_impl/geocatalogue_fetch.js";
 
 /* All ISO 3166-1 alpha-2 country codes (lowercase). Most are valid geoip:* /
  * geosite:geolocation-* tags. */
@@ -178,9 +179,12 @@ interface GeoCataloguePayload {
   source?: string;
   count?: number;
   names?: string[];
+  release_count?: number;
+  release_source?: string;
+  release_names?: string[];
 }
 
-function loadFullGeositeNames(): string[] {
+function loadCataloguePayload(): GeoCataloguePayload {
   /* Resolve relative to this module's filesystem location.
    * - source (tsx): src/data/geocatalogue.ts → ../../data/geocatalogue.json
    * - dist (node):  dist/data/geocatalogue.js → ../../data/geocatalogue.json
@@ -190,17 +194,16 @@ function loadFullGeositeNames(): string[] {
     const here = path.dirname(fileURLToPath(import.meta.url));
     const jsonPath = path.resolve(here, "..", "..", "data", "geocatalogue.json");
     const raw = readFileSync(jsonPath, "utf8");
-    const data = JSON.parse(raw) as GeoCataloguePayload;
-    if (Array.isArray(data.names)) return data.names;
-    return [];
+    return JSON.parse(raw) as GeoCataloguePayload;
   } catch {
     /* No JSON yet → fall back to curated list only. Silent: the lint warning
      * "geo_unknown_category" still works, just with a smaller corpus. */
-    return [];
+    return {};
   }
 }
 
-const fullNames = loadFullGeositeNames();
+const payload = loadCataloguePayload();
+const fullNames: string[] = Array.isArray(payload.names) ? payload.names : [];
 const seenGeosite = new Set(GEOSITE_NAMES);
 for (const code of ISO_COUNTRY_CODES) seenGeosite.add(`geolocation-${code}`);
 for (const name of fullNames) {
@@ -225,12 +228,52 @@ export function isKnownGeoTag(tag: string): boolean {
   return false;
 }
 
+/* ---- v0.12: which categories actually ship in xray-core's geosite.dat ----
+ *
+ * v2fly source has ~1500 categories, but the published xray-core release
+ * geosite.dat only carries a curated subset (~150). Routing rules that
+ * reference a v2fly-source-only category will make xray refuse to start.
+ *
+ * Source priority:
+ *   1. data/geocatalogue.json's release_names[] (kept fresh by
+ *      `npm run fetch-geocatalogue` from Loyalsoldier release asset).
+ *   2. RELEASE_FALLBACK_NAMES — hand-curated whitelist used when the JSON
+ *      lacks the field (older format, or fetch failed in the past).
+ */
+const releaseNamesFromJson: string[] = Array.isArray(payload.release_names)
+  ? payload.release_names
+  : [];
+const RELEASE_GEOSITE_SET = new Set<string>(
+  (releaseNamesFromJson.length > 0 ? releaseNamesFromJson : RELEASE_FALLBACK_NAMES).map(
+    (s) => s.toLowerCase(),
+  ),
+);
+
+export const releaseCatalogueSize = (): number => RELEASE_GEOSITE_SET.size;
+
+/* "geosite:category-ru" → known to ship in xray release? Returns false for
+ * geoip:* (release vs source distinction doesn't apply there), and for
+ * tags whose category is missing from the release set. */
+export function isGeositeInXrayRelease(tag: string): boolean {
+  if (!tag.startsWith("geosite:")) return false;
+  const raw = tag.slice("geosite:".length);
+  /* Strip "@cn" attribute suffix (steam@cn) for matching, treat negation
+   * "geolocation-!cn" as-is — it is its own category in the dat file. */
+  const name = raw.split("@")[0].toLowerCase();
+  return RELEASE_GEOSITE_SET.has(name);
+}
+
 export interface GeoSearchHit {
   prefix: "geoip" | "geosite";
   name: string;
   description: string;
   /* Full tag form used in routing rules. */
   tag: string;
+  /* True when present in v2fly upstream source (or the curated subset). */
+  in_v2fly_source: boolean;
+  /* True when present in xray-core release geosite.dat — only meaningful
+   * for geosite:* tags; always false for geoip:* (different mechanism). */
+  in_xray_release: boolean;
 }
 
 export function searchGeoCatalogue(query: string, limit = 30): GeoSearchHit[] {
@@ -251,5 +294,8 @@ export function searchGeoCatalogue(query: string, limit = 30): GeoSearchHit[] {
     name: e.name,
     description: e.description,
     tag: `${e.prefix}:${e.name}`,
+    in_v2fly_source: true,
+    in_xray_release:
+      e.prefix === "geosite" && RELEASE_GEOSITE_SET.has(e.name.split("@")[0].toLowerCase()),
   }));
 }
