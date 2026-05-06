@@ -5,3 +5,7 @@ dist/
 .env.*
 .DS_Store
 *.log
+
+# Runtime cache files written by tools (not shipped in npm package).
+data/whitelist-cache.json
+data/reality-verdicts.json

@@ -66,13 +66,14 @@ a curated SNI suggester per exit-country and a multi-config merge helper.
 | `xray_generate_reality_keypair` | Fresh REALITY X25519 keypair, base64url 43 chars — drop-in for `xray x25519`. |
 | `xray_validate_sni_target` | Live TLS 1.3 + ALPN h2 + HTTP probe of a candidate REALITY target host.               |
 | `xray_test_reality_live`   | Spin up real local xray server+client, run a full REALITY handshake against the target, probe HTTPS through the cascade. Strictly stronger than `xray_validate_sni_target`. |
+| `xray_whitelist_sni_candidates` | Pull a public RU-traffic whitelist (default: hxehex/russia-mobile-internet-whitelist) and TLS-validate the top N hosts as REALITY SNI front candidates. Returns ranked, sorted by ok desc, latency asc. |
 | `xray_suggest_sni_for_country` | Curated REALITY SNI/target hosts per exit-country (DE/PL/NL/FR/LV/SE/FI/US/UK/JP/SG/AU/CA). |
 | `xray_merge_configs`       | Merge N xray configs with tag-collision resolution and conflict warnings.             |
 | `xray_github_search`       | Search issues/PRs/discussions across XTLS GitHub repos (Xray-core/REALITY/docs).      |
 | `xray_github_fetch_issue`  | Fetch one issue/PR/discussion with full body + top comments.                          |
 | `xray_refresh_cache`       | Bulk re-fetch cached docs (`scope: all/stale/category`). Optional `discover` for new upstream slugs. Optional `refresh_geocatalogue: true` to also re-pull the v2fly category list. |
 
-Total: **17 tools**.
+Total: **18 tools**.
 
 ### Quick toolbelt
 
@@ -111,9 +112,61 @@ Live REALITY handshake (catches what `xray_validate_sni_target` cannot):
   "http_probe_status": 200,
   "latency_ms": 824,
   "issues": [],
-  "used_keypair": { "privateKey": "...", "publicKey": "...", "shortId": "a1b2c3d4" }
+  "used_keypair": { "privateKey": "...", "publicKey": "...", "shortId": "a1b2c3d4" },
+  "cached": false,
+  "cached_at": "2026-05-06T12:30:00.000Z"
 }
 ```
+
+> Verdicts are persisted to `data/reality-verdicts.json` (LRU cap 50, TTL 24h,
+> key `host:port`). Subsequent calls with the same target return instantly with
+> `cached: true`. Pass `force_refresh: true` to bypass the cache and rerun xray.
+
+Compare a list of candidates in one shot — runs sequentially, each entry hits
+the cache, results are sorted by `ok desc, latency_ms asc`:
+
+```jsonc
+// xray_test_reality_live {
+//   "multi_targets": ["2gis.ru", "yandex.ru", "vk.com", "mail.ru"]
+// }
+{
+  "results": [
+    { "target": "2gis.ru:443",   "ok": true,  "latency_ms": 824, "cached": true,  "cached_at": "..." },
+    { "target": "mail.ru:443",   "ok": true,  "latency_ms": 1102, "cached": false, "cached_at": "..." },
+    { "target": "yandex.ru:443", "ok": false, "latency_ms": 0,    "cached": false, "cached_at": "...", "issues": ["client received a real certificate ..."] },
+    { "target": "vk.com:443",    "ok": false, "latency_ms": 0,    "cached": false, "cached_at": "...", "issues": ["target unreachable"] }
+  ],
+  "summary": { "ok_count": 2, "total": 4 }
+}
+```
+
+Pull a public RU-traffic whitelist and rank live SNI candidates for an
+inbound RU-relay node:
+
+```jsonc
+// xray_whitelist_sni_candidates { "max_candidates": 10 }
+{
+  "source_url": "https://raw.githubusercontent.com/hxehex/russia-mobile-internet-whitelist/main/whitelist.txt",
+  "fetched_at": "2026-05-06T12:34:00.000Z",
+  "total_domains": 412,
+  "tested": 10,
+  "candidates": [
+    { "host": "ya.ru",      "ok": true,  "tls_version": "TLSv1.3", "alpn": "h2", "http_status": 200, "latency_ms": 41,  "cert_subject": "ya.ru",      "issues": [] },
+    { "host": "vk.com",     "ok": true,  "tls_version": "TLSv1.3", "alpn": "h2", "http_status": 200, "latency_ms": 78,  "cert_subject": "*.vk.com",   "issues": [] },
+    { "host": "ozon.ru",    "ok": false, "tls_version": "TLSv1.3", "alpn": "h2", "http_status": 200, "latency_ms": 134, "cert_subject": "*.ozon.ru",  "issues": [] }
+  ],
+  "summary": { "ok_count": 8, "failed_count": 2 },
+  "cache":   { "used": false, "age_seconds": null },
+  "notes":   ["latency_ms is measured from the MCP host (your laptop), not from the relay node — re-test from the node for geo-accurate values"]
+}
+```
+
+> The whitelist body is cached on disk in `data/whitelist-cache.json`
+> (default TTL 24h, override via `cache_ttl_hours`). Verdicts are NOT cached
+> — every call re-probes its slice live so latency numbers stay fresh.
+> NB: the probe runs from your laptop, not from the РФ relay; for
+> geo-accurate latency, use `xray_test_reality_live` from the actual
+> node (or ssh + curl on it).
 
 It also exposes a single MCP **resource**: `xray://docs/index` — the raw
 `_index.json` of cached topics.
@@ -382,13 +435,14 @@ MCP-сервер, дающий LLM офлайн-доступ к официаль
 | `xray_generate_reality_keypair` | Свежая X25519 пара REALITY, base64url 43 chars — drop-in для `xray x25519`.        |
 | `xray_validate_sni_target` | Live проба TLS 1.3 + ALPN h2 + HTTP кандидата на REALITY target.                        |
 | `xray_test_reality_live`   | Поднимает локальную пару xray (server+client), реально гоняет REALITY handshake к target, probe HTTPS сквозь каскад. Строго сильнее `xray_validate_sni_target`. |
+| `xray_whitelist_sni_candidates` | Тянет публичный whitelist РФ-трафика (default: hxehex/russia-mobile-internet-whitelist), TLS-валидирует топ-N как REALITY SNI-кандидаты. Сортировка ok desc, latency asc. |
 | `xray_suggest_sni_for_country` | Курируемые REALITY-фронты по стране exit'а (DE/PL/NL/FR/LV/SE/FI/US/UK/JP/SG/AU/CA). |
 | `xray_merge_configs`       | Слить N конфигов с разрешением коллизий тегов.                                          |
 | `xray_github_search`       | Поиск issues/PR/discussions по XTLS GitHub репозиториям.                                |
 | `xray_github_fetch_issue`  | Получить одну issue/PR/discussion с полным body + топ комментариев.                     |
 | `xray_refresh_cache`       | Bulk перезатяжка кеша доков (`scope: all/stale/category`). Опц. `discover` + `refresh_geocatalogue: true` (заодно перетянет v2fly категории). |
 
-Всего: **17 тулов**.
+Всего: **18 тулов**.
 
 ### Quick toolbelt
 
@@ -429,11 +483,58 @@ Live-проверить кандидата на REALITY SNI:
   "http_probe_status": 200,
   "latency_ms": 824,
   "issues": [],
-  "used_keypair": { "privateKey": "...", "publicKey": "...", "shortId": "a1b2c3d4" }
+  "used_keypair": { "privateKey": "...", "publicKey": "...", "shortId": "a1b2c3d4" },
+  "cached": false,
+  "cached_at": "2026-05-06T12:30:00.000Z"
 }
 ```
 
 > При первом вызове скачивает xray-binary в `~/.cache/mcp-xray-pilot/xray-bin/` (~30MB), дальше переиспользует. Если REALITY несовместим с target (как `outlook.live.com` или `www.ozon.ru` — реальные кейсы Flare VPN), `client_received_real_cert: true` и `ok: false`.
+
+> Вердикты пишутся на диск в `data/reality-verdicts.json` (LRU 50, TTL 24h, ключ `host:port`). Повторный вызов на тот же таргет возвращается мгновенно с `cached: true`. Чтобы прогнать заново — `force_refresh: true`.
+
+Сравнить пачку кандидатов одним вызовом — запускаются последовательно, каждый через кэш, сорт `ok desc, latency_ms asc`:
+
+```jsonc
+// xray_test_reality_live {
+//   "multi_targets": ["2gis.ru", "yandex.ru", "vk.com", "mail.ru"]
+// }
+{
+  "results": [
+    { "target": "2gis.ru:443",   "ok": true,  "latency_ms": 824, "cached": true },
+    { "target": "mail.ru:443",   "ok": true,  "latency_ms": 1102, "cached": false },
+    { "target": "yandex.ru:443", "ok": false, "issues": ["client received a real certificate ..."] },
+    { "target": "vk.com:443",    "ok": false, "issues": ["target unreachable"] }
+  ],
+  "summary": { "ok_count": 2, "total": 4 }
+}
+```
+
+Затянуть публичный whitelist РФ-трафика и проранжировать кандидатов на REALITY SNI для inbound РФ-relay-ноды:
+
+```jsonc
+// xray_whitelist_sni_candidates { "max_candidates": 10 }
+{
+  "source_url": "https://raw.githubusercontent.com/hxehex/russia-mobile-internet-whitelist/main/whitelist.txt",
+  "fetched_at": "2026-05-06T12:34:00.000Z",
+  "total_domains": 412,
+  "tested": 10,
+  "candidates": [
+    { "host": "ya.ru",   "ok": true,  "tls_version": "TLSv1.3", "alpn": "h2", "http_status": 200, "latency_ms": 41,  "cert_subject": "ya.ru",     "issues": [] },
+    { "host": "vk.com",  "ok": true,  "tls_version": "TLSv1.3", "alpn": "h2", "http_status": 200, "latency_ms": 78,  "cert_subject": "*.vk.com",  "issues": [] }
+  ],
+  "summary": { "ok_count": 8, "failed_count": 2 },
+  "cache":   { "used": false, "age_seconds": null },
+  "notes":   ["latency_ms is measured from the MCP host (your laptop), not from the relay node — re-test from the node for geo-accurate values"]
+}
+```
+
+> Тело whitelist кешируется на диск в `data/whitelist-cache.json` (TTL по
+> умолчанию 24h, переопределение через `cache_ttl_hours`). Verdicts НЕ
+> кешируются — каждый вызов делает свежие пробы на своём срезе. NB:
+> latency меряется с тачки где запущен MCP, а НЕ с РФ-relay-ноды; для
+> гео-релевантной задержки используй `xray_test_reality_live` прямо с
+> ноды (или ssh + curl на ней).
 
 Также один MCP **ресурс**: `xray://docs/index`.
 

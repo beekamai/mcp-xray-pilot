@@ -1,6 +1,6 @@
 {
   "name": "mcp-xray-pilot",
-  "version": "0.13.0",
+  "version": "0.14.0",
   "description": "MCP server for xray-core: offline docs cache (auto-refresh), config validation, REALITY/XTLS lint, anti-DPI recipes, GitHub research from XTLS repos.",
   "main": "dist/index.js",
   "bin": {

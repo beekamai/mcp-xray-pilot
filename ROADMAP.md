@@ -98,6 +98,30 @@ Incremental plan for deepening `xray_validate_config` and `xray_lint`.
   (-2/-3 suffix), warns on inbound port collisions and disagreeing
   singletons (log/policy/api/...).
 
+## v0.14 — done (Phase 13: REALITY ergonomics + whitelist-driven SNI selection)
+
+- ✅ `xray_test_reality_live` gets a disk-persisted LRU verdict cache
+  (`data/reality-verdicts.json`, cap 50, TTL 24h, key `host:port`).
+  `force_refresh: true` bypasses the cache.
+- ✅ `xray_test_reality_live` accepts `multi_targets[]` (1..10 hosts),
+  runs them sequentially through the cache and returns a sorted
+  `{ results, summary }` payload (sort: `ok desc, latency_ms asc`).
+- ✅ HTTP-probe socket chain is wired through an `AbortController`;
+  finally{} double-aborts as a safety net so a stuck timeout no longer
+  leaks file descriptors.
+- ✅ New tool `xray_whitelist_sni_candidates`: pulls a public RU-traffic
+  whitelist (default `hxehex/russia-mobile-internet-whitelist`),
+  parses out hostnames (drops wildcards, IPs, comments, malformed
+  labels), and runs `xray_validate_sni_target` on the top N
+  (concurrency 5, hard cap 50). Sorted by `ok desc, latency_ms asc`.
+  Whitelist body cached on disk in `data/whitelist-cache.json`
+  (TTL = `cache_ttl_hours`, default 24h). Verdicts are NOT cached —
+  each call re-probes its slice live so latency stays fresh. Probe
+  runs from the MCP host, not from the relay node — surfaced as a
+  `notes[]` string in every response.
+
+Tools total: **18**.
+
 ## v0.12 — done (Phase 11: DNS-leak lint + xray-release geosite split)
 
 - ✅ Lint rule `dns_through_proxy_leaks_to_blocked_outbound` (severity:

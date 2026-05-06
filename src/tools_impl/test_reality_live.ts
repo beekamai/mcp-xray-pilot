@@ -20,6 +20,15 @@
  *   exposes a SOCKS inbound; we issue a single HTTPS GET through it.
  * - Both xray processes log at debug level into temp files we read back.
  * - Everything is killed and unlinked in finally{}.
+ *
+ * v0.14:
+ * - Verdicts are cached on disk in data/reality-verdicts.json. Cap = 50
+ *   entries (LRU by cached_at), TTL = 24h. Key = `host:port`. Set
+ *   `force_refresh: true` to bypass the cache.
+ * - `multi_targets[]` runs a list of candidates sequentially (1..10) and
+ *   returns a sorted summary instead of a single verdict.
+ * - The HTTP probe socket is now wired through an AbortController so
+ *   timing out doesn't leak file descriptors on long-running servers.
  */
 
 import { generateRealityKeypair } from "./gen_reality_keypair.js";
@@ -35,7 +44,8 @@ import {
   chmod,
 } from "node:fs/promises";
 import { homedir, tmpdir, platform, arch } from "node:os";
-import { join } from "node:path";
+import path, { join } from "node:path";
+import { fileURLToPath } from "node:url";
 import { randomBytes, randomUUID } from "node:crypto";
 import { createServer as createTcpServer, connect as netConnect, type Socket } from "node:net";
 import { connect as tlsConnectRaw, type TLSSocket } from "node:tls";
@@ -48,6 +58,8 @@ export interface TestRealityLiveArgs {
   target_port?: number;
   timeout_ms?: number;
   keypair?: { privateKey: string; publicKey: string };
+  multi_targets?: string[];
+  force_refresh?: boolean;
 }
 
 export interface TestRealityLiveResult {
@@ -61,6 +73,13 @@ export interface TestRealityLiveResult {
   client_log_excerpt: string;
   issues: string[];
   used_keypair: { privateKey: string; publicKey: string; shortId: string };
+  cached?: boolean;
+  cached_at?: string;
+}
+
+export interface TestRealityLiveMultiResult {
+  results: TestRealityLiveResult[];
+  summary: { ok_count: number; total: number };
 }
 
 /* --------------------------------------------------------------------- */
@@ -250,8 +269,13 @@ function socks5Connect(
   targetHost: string,
   targetPort: number,
   timeoutMs: number,
+  signal: AbortSignal,
 ): Promise<Socket> {
   return new Promise((resolve, reject) => {
+    if (signal.aborted) {
+      reject(new Error("aborted before SOCKS5 connect"));
+      return;
+    }
     const sock = netConnect({ host: socksHost, port: socksPort });
     sock.setTimeout(timeoutMs);
     let stage: "greet" | "connect" = "greet";
@@ -261,6 +285,11 @@ function socks5Connect(
       try { sock.destroy(); } catch { /* swallow */ }
       reject(e);
     };
+
+    const onAbort = (): void => {
+      fail(new Error("aborted during SOCKS5 handshake"));
+    };
+    signal.addEventListener("abort", onAbort, { once: true });
 
     sock.once("error", fail);
     sock.once("timeout", () => fail(new Error("SOCKS5 timeout")));
@@ -319,6 +348,7 @@ function socks5Connect(
       sock.removeAllListeners("error");
       sock.removeAllListeners("timeout");
       sock.setTimeout(0);
+      signal.removeEventListener("abort", onAbort);
       /* unshift any leftover bytes back to be consumed by next layer */
       const leftover = merged.subarray(headerLen);
       if (leftover.length) sock.unshift(leftover);
@@ -332,13 +362,25 @@ async function probeThroughSocks(
   socksPort: number,
   targetHost: string,
   targetPort: number,
-  path: string,
+  reqPath: string,
   timeoutMs: number,
+  signal: AbortSignal,
 ): Promise<{ status: number; latencyMs: number }> {
   const t0 = Date.now();
-  const sock = await socks5Connect(socksHost, socksPort, targetHost, targetPort, timeoutMs);
+  const sock = await socks5Connect(socksHost, socksPort, targetHost, targetPort, timeoutMs, signal);
+
+  /* Make sure the SOCKS socket itself is destroyed if the caller aborts
+   * after the handshake completed but before TLS layered on top of it. */
+  const onAbortSocks = (): void => {
+    try { sock.destroy(); } catch { /* swallow */ }
+  };
+  signal.addEventListener("abort", onAbortSocks, { once: true });
 
   const tlsSock = await new Promise<TLSSocket>((resolve, reject) => {
+    if (signal.aborted) {
+      reject(new Error("aborted before TLS connect"));
+      return;
+    }
     const t = tlsConnectRaw({
       socket: sock,
       servername: targetHost,
@@ -349,20 +391,35 @@ async function probeThroughSocks(
       try { t.destroy(); } catch { /* swallow */ }
       reject(new Error("TLS through SOCKS timeout"));
     }, timeoutMs);
+    const onAbortTls = (): void => {
+      clearTimeout(tmr);
+      try { t.destroy(); } catch { /* swallow */ }
+      reject(new Error("aborted during TLS handshake"));
+    };
+    signal.addEventListener("abort", onAbortTls, { once: true });
     t.once("secureConnect", () => {
       clearTimeout(tmr);
+      signal.removeEventListener("abort", onAbortTls);
       resolve(t);
     });
     t.once("error", (e) => {
       clearTimeout(tmr);
+      signal.removeEventListener("abort", onAbortTls);
       reject(e);
     });
   });
+  signal.removeEventListener("abort", onAbortSocks);
+
+  /* TLS now owns the underlying socket; aborts must destroy tlsSock. */
+  const onAbortTlsSock = (): void => {
+    try { tlsSock.destroy(); } catch { /* swallow */ }
+  };
+  signal.addEventListener("abort", onAbortTlsSock, { once: true });
 
   const req =
-    `GET ${path} HTTP/1.1\r\n` +
+    `GET ${reqPath} HTTP/1.1\r\n` +
     `Host: ${targetHost}\r\n` +
-    `User-Agent: mcp-xray-pilot/0.13 (reality-test)\r\n` +
+    `User-Agent: mcp-xray-pilot/0.14 (reality-test)\r\n` +
     `Connection: close\r\n` +
     `Accept: */*\r\n\r\n`;
   tlsSock.write(req);
@@ -374,20 +431,35 @@ async function probeThroughSocks(
       if (done) return;
       done = true;
       try { tlsSock.destroy(); } catch { /* swallow */ }
+      signal.removeEventListener("abort", onAbortTlsSock);
       resolve(v);
     };
     const tmr = setTimeout(() => finish(0), timeoutMs);
+    const onAbortRead = (): void => {
+      clearTimeout(tmr);
+      finish(0);
+    };
+    signal.addEventListener("abort", onAbortRead, { once: true });
     tlsSock.on("data", (c: Buffer) => {
       chunks.push(c);
       const merged = Buffer.concat(chunks).toString("utf8");
       const m = merged.match(/^HTTP\/1\.[01]\s+(\d{3})/);
       if (m) {
         clearTimeout(tmr);
+        signal.removeEventListener("abort", onAbortRead);
         finish(parseInt(m[1], 10));
       }
     });
-    tlsSock.on("end", () => { clearTimeout(tmr); finish(0); });
-    tlsSock.on("error", () => { clearTimeout(tmr); finish(0); });
+    tlsSock.on("end", () => {
+      clearTimeout(tmr);
+      signal.removeEventListener("abort", onAbortRead);
+      finish(0);
+    });
+    tlsSock.on("error", () => {
+      clearTimeout(tmr);
+      signal.removeEventListener("abort", onAbortRead);
+      finish(0);
+    });
   });
 
   return { status, latencyMs: Date.now() - t0 };
@@ -565,9 +637,9 @@ function delay(ms: number): Promise<void> {
   return new Promise((r) => setTimeout(r, ms));
 }
 
-async function readTail(path: string, maxLines: number): Promise<string> {
+async function readTail(filePath: string, maxLines: number): Promise<string> {
   try {
-    const buf = await readFile(path, "utf8");
+    const buf = await readFile(filePath, "utf8");
     const lines = buf.split(/\r?\n/);
     const slice = lines.slice(-maxLines - 1).filter((l) => l.length > 0);
     return slice.join("\n");
@@ -577,19 +649,118 @@ async function readTail(path: string, maxLines: number): Promise<string> {
 }
 
 /* --------------------------------------------------------------------- */
+/* On-disk LRU verdict cache                                             */
+/* --------------------------------------------------------------------- */
+
+const VERDICT_CACHE_TTL_MS = 24 * 60 * 60 * 1000;
+const VERDICT_CACHE_CAP = 50;
+
+interface VerdictCacheEntry {
+  /* Stored verdict, *without* any cached:* fields — we re-add them on read. */
+  verdict: TestRealityLiveResult;
+  cached_at: string;
+}
+
+interface VerdictCacheFile {
+  version: 1;
+  entries: Record<string, VerdictCacheEntry>;
+}
+
+function verdictCachePath(): string {
+  /*
+   * Resolve relative to this module so it works in both source (tsx) and
+   * built (dist) layouts. Both land on <repo>/data/reality-verdicts.json.
+   *   - source: src/tools_impl/test_reality_live.ts → ../../data/reality-verdicts.json
+   *   - dist:   dist/tools_impl/test_reality_live.js → ../../data/reality-verdicts.json
+   */
+  const here = path.dirname(fileURLToPath(import.meta.url));
+  return path.resolve(here, "..", "..", "data", "reality-verdicts.json");
+}
+
+function cacheKey(host: string, port: number): string {
+  return `${host.toLowerCase()}:${port}`;
+}
+
+async function readVerdictCache(): Promise<VerdictCacheFile> {
+  try {
+    const raw = await readFile(verdictCachePath(), "utf8");
+    const parsed = JSON.parse(raw) as Partial<VerdictCacheFile>;
+    if (parsed && parsed.version === 1 && parsed.entries && typeof parsed.entries === "object") {
+      return { version: 1, entries: parsed.entries };
+    }
+    return { version: 1, entries: {} };
+  } catch {
+    /* Missing or corrupted — start clean. */
+    return { version: 1, entries: {} };
+  }
+}
+
+async function writeVerdictCache(cache: VerdictCacheFile): Promise<void> {
+  const filePath = verdictCachePath();
+  try {
+    await mkdir(path.dirname(filePath), { recursive: true });
+    await writeFile(filePath, JSON.stringify(cache, null, 2), "utf8");
+  } catch {
+    /* Best-effort persistence. The cache miss next call is harmless. */
+  }
+}
+
+function lookupCache(
+  cache: VerdictCacheFile,
+  host: string,
+  port: number,
+): TestRealityLiveResult | null {
+  const entry = cache.entries[cacheKey(host, port)];
+  if (!entry) return null;
+  const ts = Date.parse(entry.cached_at);
+  if (!Number.isFinite(ts) || Date.now() - ts > VERDICT_CACHE_TTL_MS) return null;
+  return { ...entry.verdict, cached: true, cached_at: entry.cached_at };
+}
+
+function evictLRU(cache: VerdictCacheFile): void {
+  const keys = Object.keys(cache.entries);
+  if (keys.length <= VERDICT_CACHE_CAP) return;
+  const sorted = keys
+    .map((k) => ({ k, t: Date.parse(cache.entries[k].cached_at) || 0 }))
+    .sort((a, b) => a.t - b.t);
+  const toDrop = sorted.slice(0, keys.length - VERDICT_CACHE_CAP);
+  for (const { k } of toDrop) delete cache.entries[k];
+}
+
+function storeInCache(
+  cache: VerdictCacheFile,
+  host: string,
+  port: number,
+  verdict: TestRealityLiveResult,
+): { cached_at: string } {
+  const cached_at = new Date().toISOString();
+  /* Strip any inbound cached:* flags before storing. */
+  const { cached: _c, cached_at: _ca, ...clean } = verdict;
+  void _c;
+  void _ca;
+  cache.entries[cacheKey(host, port)] = { verdict: clean, cached_at };
+  evictLRU(cache);
+  return { cached_at };
+}
+
+/* --------------------------------------------------------------------- */
 /* Main entrypoint                                                       */
 /* --------------------------------------------------------------------- */
 
 const HARDCODED_UUID = "fc6a8a7e-6c0a-4b7a-9b1f-9c3a0a1b2c3d";
 
-export async function testRealityLive(args: TestRealityLiveArgs): Promise<TestRealityLiveResult> {
-  const targetHost = (args.target_host ?? "").trim();
-  if (!targetHost) throw new Error("Missing required parameter: target_host");
-  const targetPort = args.target_port ?? 443;
-  const overallTimeout = args.timeout_ms ?? 15000;
+interface SingleTargetOpts {
+  targetHost: string;
+  targetPort: number;
+  overallTimeout: number;
+  keypair?: { privateKey: string; publicKey: string };
+}
 
-  const kp = args.keypair
-    ? { privateKey: args.keypair.privateKey, publicKey: args.keypair.publicKey }
+async function runSingleTarget(opts: SingleTargetOpts): Promise<TestRealityLiveResult> {
+  const { targetHost, targetPort, overallTimeout } = opts;
+
+  const kp = opts.keypair
+    ? { privateKey: opts.keypair.privateKey, publicKey: opts.keypair.publicKey }
     : (() => {
         const g = generateRealityKeypair();
         return { privateKey: g.privateKey, publicKey: g.publicKey };
@@ -613,6 +784,7 @@ export async function testRealityLive(args: TestRealityLiveArgs): Promise<TestRe
   let serverProc: ChildProcess | null = null;
   let clientProc: ChildProcess | null = null;
   let workDir: string | null = null;
+  const probeAbort = new AbortController();
 
   try {
     /* 1. xray binary. */
@@ -689,8 +861,13 @@ export async function testRealityLive(args: TestRealityLiveArgs): Promise<TestRe
 
     const probeBudget = Math.max(3000, overallTimeout - (Date.now() - t0) - 1500);
     let probe: { status: number; latencyMs: number } | null = null;
+    let timeoutTimer: NodeJS.Timeout | null = null;
     try {
-      probe = await Promise.race([
+      probe = await new Promise<{ status: number; latencyMs: number }>((resolve, reject) => {
+        timeoutTimer = setTimeout(() => {
+          probeAbort.abort();
+          reject(new Error(`timeout: REALITY handshake didn't complete in ${overallTimeout} ms`));
+        }, probeBudget);
         probeThroughSocks(
           "127.0.0.1",
           pair.clientSocksPort,
@@ -698,15 +875,21 @@ export async function testRealityLive(args: TestRealityLiveArgs): Promise<TestRe
           443,
           "/cdn-cgi/trace",
           probeBudget,
-        ),
-        delay(probeBudget).then(() => {
-          throw new Error(`timeout: REALITY handshake didn't complete in ${overallTimeout} ms`);
-        }),
-      ]);
+          probeAbort.signal,
+        ).then((r) => {
+          if (timeoutTimer) clearTimeout(timeoutTimer);
+          resolve(r);
+        }, (e) => {
+          if (timeoutTimer) clearTimeout(timeoutTimer);
+          reject(e);
+        });
+      });
       result.http_probe_status = probe.status || null;
       result.latency_ms = probe.latencyMs;
     } catch (e) {
       result.issues.push((e as Error).message);
+    } finally {
+      if (timeoutTimer) clearTimeout(timeoutTimer);
     }
 
     /* 6. settle then read logs. */
@@ -735,10 +918,115 @@ export async function testRealityLive(args: TestRealityLiveArgs): Promise<TestRe
 
     return result;
   } finally {
+    /*
+     * Ensure the probe socket chain can never outlive this call: even on
+     * the happy path the listeners are removed but a stray reference
+     * shouldn't pin a socket open. abort() is idempotent.
+     */
+    probeAbort.abort();
     killProc(serverProc);
     killProc(clientProc);
     if (workDir) {
       await rm(workDir, { recursive: true, force: true }).catch(() => { /* swallow */ });
+    }
+  }
+}
+
+const MULTI_TARGETS_MAX = 10;
+
+function parseTargetSpec(spec: string, defaultPort: number): { host: string; port: number } {
+  /* Accept "host", "host:port" and bracketed-IPv6 "[::1]:443". */
+  const trimmed = spec.trim();
+  if (!trimmed) throw new Error("empty target in multi_targets[]");
+  if (trimmed.startsWith("[")) {
+    const close = trimmed.indexOf("]");
+    if (close < 0) throw new Error(`invalid IPv6 target: ${spec}`);
+    const host = trimmed.slice(1, close);
+    const rest = trimmed.slice(close + 1);
+    if (!rest) return { host, port: defaultPort };
+    if (!rest.startsWith(":")) throw new Error(`invalid IPv6 target suffix: ${spec}`);
+    const port = parseInt(rest.slice(1), 10);
+    if (!Number.isInteger(port) || port < 1 || port > 65535) {
+      throw new Error(`invalid port in target: ${spec}`);
+    }
+    return { host, port };
+  }
+  const colon = trimmed.lastIndexOf(":");
+  if (colon < 0) return { host: trimmed, port: defaultPort };
+  const host = trimmed.slice(0, colon);
+  const port = parseInt(trimmed.slice(colon + 1), 10);
+  if (!Number.isInteger(port) || port < 1 || port > 65535) {
+    throw new Error(`invalid port in target: ${spec}`);
+  }
+  return { host, port };
+}
+
+export async function testRealityLive(
+  args: TestRealityLiveArgs,
+): Promise<TestRealityLiveResult | TestRealityLiveMultiResult> {
+  const overallTimeout = args.timeout_ms ?? 15000;
+  const defaultPort = args.target_port ?? 443;
+  const forceRefresh = args.force_refresh === true;
+  const hasSingle = typeof args.target_host === "string" && args.target_host.trim().length > 0;
+  const hasMulti = Array.isArray(args.multi_targets) && args.multi_targets.length > 0;
+
+  if (hasSingle && hasMulti) {
+    throw new Error("`target_host` and `multi_targets` are mutually exclusive");
+  }
+  if (!hasSingle && !hasMulti) {
+    throw new Error("Missing required parameter: target_host (or multi_targets[])");
+  }
+  if (hasMulti) {
+    if (args.multi_targets!.length > MULTI_TARGETS_MAX) {
+      throw new Error(`multi_targets[] has ${args.multi_targets!.length} entries; max is ${MULTI_TARGETS_MAX}`);
+    }
+  }
+
+  const cache = await readVerdictCache();
+  const ranSinceLastWrite: { dirty: boolean } = { dirty: false };
+
+  const runOne = async (host: string, port: number): Promise<TestRealityLiveResult> => {
+    if (!forceRefresh) {
+      const hit = lookupCache(cache, host, port);
+      if (hit) return hit;
+    }
+    const fresh = await runSingleTarget({
+      targetHost: host,
+      targetPort: port,
+      overallTimeout,
+      keypair: args.keypair,
+    });
+    const { cached_at } = storeInCache(cache, host, port, fresh);
+    ranSinceLastWrite.dirty = true;
+    return { ...fresh, cached: false, cached_at };
+  };
+
+  try {
+    if (hasSingle) {
+      return await runOne(args.target_host!.trim(), defaultPort);
+    }
+
+    /* multi: sequential to avoid xray binary contention on stdio/ports. */
+    const results: TestRealityLiveResult[] = [];
+    for (const spec of args.multi_targets!) {
+      const { host, port } = parseTargetSpec(spec, defaultPort);
+      const r = await runOne(host, port);
+      results.push(r);
+    }
+    results.sort((a, b) => {
+      if (a.ok !== b.ok) return a.ok ? -1 : 1;
+      return (a.latency_ms || Number.MAX_SAFE_INTEGER) - (b.latency_ms || Number.MAX_SAFE_INTEGER);
+    });
+    return {
+      results,
+      summary: {
+        ok_count: results.filter((r) => r.ok).length,
+        total: results.length,
+      },
+    };
+  } finally {
+    if (ranSinceLastWrite.dirty) {
+      await writeVerdictCache(cache);
     }
   }
 }

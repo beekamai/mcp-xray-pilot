@@ -339,11 +339,18 @@ export const TOOL_SCHEMAS = [
       "certificate AND an HTTPS probe through the cascade returned 2xx/3xx. Strictly " +
       "stronger than xray_validate_sni_target — catches targets that pass TLS 1.3+h2 " +
       "but still break REALITY (e.g. outlook.live.com, www.ozon.ru). Downloads xray " +
-      "binary on first call into ~/.cache/mcp-xray-pilot/xray-bin (cached after).",
+      "binary on first call into ~/.cache/mcp-xray-pilot/xray-bin (cached after). " +
+      "Verdicts are persisted in data/reality-verdicts.json (LRU 50, TTL 24h, key " +
+      "host:port) — set force_refresh=true to bypass. Pass multi_targets[] (1..10) " +
+      "instead of target_host to batch a sorted comparison in one call.",
     inputSchema: {
       type: "object",
       properties: {
-        target_host: { type: "string", description: 'REALITY target/SNI host, e.g. "2gis.ru".' },
+        target_host: {
+          type: "string",
+          description:
+            'REALITY target/SNI host, e.g. "2gis.ru". Mutually exclusive with multi_targets[].',
+        },
         target_port: { type: "number", default: 443, minimum: 1, maximum: 65535 },
         timeout_ms: { type: "number", default: 15000, minimum: 5000, maximum: 60000 },
         keypair: {
@@ -355,8 +362,69 @@ export const TOOL_SCHEMAS = [
           },
           required: ["privateKey", "publicKey"],
         },
+        multi_targets: {
+          type: "array",
+          items: { type: "string" },
+          minItems: 1,
+          maxItems: 10,
+          description:
+            'Batch mode: list of "host" or "host:port" specs (1..10). Run sequentially, ' +
+            "each entry uses the disk cache, response is sorted by ok desc, latency_ms asc " +
+            "and returned as { results, summary }. Mutually exclusive with target_host.",
+        },
+        force_refresh: {
+          type: "boolean",
+          default: false,
+          description:
+            "If true, ignore the on-disk verdict cache and rerun xray for every target.",
+        },
       },
-      required: ["target_host"],
+    },
+  },
+  {
+    name: "xray_whitelist_sni_candidates",
+    description:
+      "Pull a public RU-traffic whitelist (default: hxehex/russia-mobile-internet-whitelist), " +
+      "parse out hostnames, and run xray_validate_sni_target on the top N. Returns ranked " +
+      "candidates suitable as REALITY SNI fronts on inbound RU-relay nodes. " +
+      "Whitelist body is cached on disk in data/whitelist-cache.json (TTL = cache_ttl_hours, " +
+      "default 24h). NB: latency_ms is measured from the MCP host (your laptop), NOT from the " +
+      "relay node — for geo-relevant probing use xray_test_reality_live from the actual relay " +
+      "(or ssh + ping/curl on the node).",
+    inputSchema: {
+      type: "object",
+      properties: {
+        whitelist_url: {
+          type: "string",
+          description:
+            "Override the whitelist source URL (raw text format, comma/newline separated). " +
+            "Default: hxehex/russia-mobile-internet-whitelist raw.",
+        },
+        max_candidates: {
+          type: "number",
+          default: 20,
+          minimum: 1,
+          maximum: 50,
+          description: "How many top-of-list hosts to TLS-validate. Hard cap 50.",
+        },
+        require_alpn_h2: {
+          type: "boolean",
+          default: true,
+          description: "If true, only ALPN h2 hosts get ok=true (REALITY needs h2 for proper mimicry).",
+        },
+        require_tls13: {
+          type: "boolean",
+          default: true,
+          description: "If true, only TLS 1.3 hosts get ok=true (REALITY hard-requires 1.3).",
+        },
+        cache_ttl_hours: {
+          type: "number",
+          default: 24,
+          minimum: 0,
+          maximum: 168,
+          description: "Whitelist body disk-cache TTL (hours). 0 forces a fresh fetch each call.",
+        },
+      },
     },
   },
   {

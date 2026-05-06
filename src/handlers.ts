@@ -23,6 +23,10 @@ import { generateRealityKeypair } from "./tools_impl/gen_reality_keypair.js";
 import { validateSniTarget, type ValidateSniArgs } from "./tools_impl/validate_sni.js";
 import { testRealityLive, type TestRealityLiveArgs } from "./tools_impl/test_reality_live.js";
 import {
+  whitelistSniCandidates,
+  type WhitelistSniArgs,
+} from "./tools_impl/whitelist_sni_candidates.js";
+import {
   suggestSniForCountry,
   listSupportedCountries,
   type SuggestSniArgs,
@@ -252,12 +256,23 @@ async function validateSniHandler(args: ValidateSniArgs): Promise<McpResponse> {
 }
 
 async function testRealityLiveHandler(args: TestRealityLiveArgs): Promise<McpResponse> {
-  if (!args.target_host || !args.target_host.trim())
-    return err("Missing required parameter: target_host");
+  const hasSingle = typeof args.target_host === "string" && args.target_host.trim().length > 0;
+  const hasMulti = Array.isArray(args.multi_targets) && args.multi_targets.length > 0;
+  if (!hasSingle && !hasMulti) {
+    return err("Missing required parameter: target_host (or multi_targets[])");
+  }
   try {
     return json(await testRealityLive(args));
   } catch (e) {
     return err(`xray_test_reality_live failed: ${(e as Error).message}`);
+  }
+}
+
+async function whitelistSniHandler(args: WhitelistSniArgs): Promise<McpResponse> {
+  try {
+    return json(await whitelistSniCandidates(args));
+  } catch (e) {
+    return err(`xray_whitelist_sni_candidates failed: ${(e as Error).message}`);
   }
 }
 
@@ -317,6 +332,8 @@ export async function dispatch(
       return validateSniHandler(args as ValidateSniArgs);
     case "xray_test_reality_live":
       return testRealityLiveHandler(args as TestRealityLiveArgs);
+    case "xray_whitelist_sni_candidates":
+      return whitelistSniHandler(args as WhitelistSniArgs);
     case "xray_suggest_sni_for_country":
       return suggestSniHandler(args as SuggestSniArgs);
     case "xray_refresh_cache":
