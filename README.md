@@ -65,13 +65,14 @@ a curated SNI suggester per exit-country and a multi-config merge helper.
 | `xray_generate_short_ids`  | Cryptographically random REALITY shortIds (default `[4,8,16]` bytes, legacy empty prefix). |
 | `xray_generate_reality_keypair` | Fresh REALITY X25519 keypair, base64url 43 chars — drop-in for `xray x25519`. |
 | `xray_validate_sni_target` | Live TLS 1.3 + ALPN h2 + HTTP probe of a candidate REALITY target host.               |
+| `xray_test_reality_live`   | Spin up real local xray server+client, run a full REALITY handshake against the target, probe HTTPS through the cascade. Strictly stronger than `xray_validate_sni_target`. |
 | `xray_suggest_sni_for_country` | Curated REALITY SNI/target hosts per exit-country (DE/PL/NL/FR/LV/SE/FI/US/UK/JP/SG/AU/CA). |
 | `xray_merge_configs`       | Merge N xray configs with tag-collision resolution and conflict warnings.             |
 | `xray_github_search`       | Search issues/PRs/discussions across XTLS GitHub repos (Xray-core/REALITY/docs).      |
 | `xray_github_fetch_issue`  | Fetch one issue/PR/discussion with full body + top comments.                          |
 | `xray_refresh_cache`       | Bulk re-fetch cached docs (`scope: all/stale/category`). Optional `discover` for new upstream slugs. Optional `refresh_geocatalogue: true` to also re-pull the v2fly category list. |
 
-Total: **16 tools**.
+Total: **17 tools**.
 
 ### Quick toolbelt
 
@@ -95,6 +96,22 @@ Live-check a candidate REALITY SNI:
   "tls_version": "TLSv1.3", "alpn": "h2", "http_status": 200,
   "cert_subject": "www.onet.pl", "cert_san_count": 4,
   "latency_ms": 312, "issues": []
+}
+```
+
+Live REALITY handshake (catches what `xray_validate_sni_target` cannot):
+
+```jsonc
+// xray_test_reality_live { "target_host": "2gis.ru" }
+{
+  "ok": true,
+  "target": "2gis.ru:443",
+  "reality_handshake_complete": true,
+  "client_received_real_cert": false,
+  "http_probe_status": 200,
+  "latency_ms": 824,
+  "issues": [],
+  "used_keypair": { "privateKey": "...", "publicKey": "...", "shortId": "a1b2c3d4" }
 }
 ```
 
@@ -364,13 +381,14 @@ MCP-сервер, дающий LLM офлайн-доступ к официаль
 | `xray_generate_short_ids`  | Криптослучайные REALITY shortIds (default `[4,8,16]` байт, с empty-prefix для легаси).  |
 | `xray_generate_reality_keypair` | Свежая X25519 пара REALITY, base64url 43 chars — drop-in для `xray x25519`.        |
 | `xray_validate_sni_target` | Live проба TLS 1.3 + ALPN h2 + HTTP кандидата на REALITY target.                        |
+| `xray_test_reality_live`   | Поднимает локальную пару xray (server+client), реально гоняет REALITY handshake к target, probe HTTPS сквозь каскад. Строго сильнее `xray_validate_sni_target`. |
 | `xray_suggest_sni_for_country` | Курируемые REALITY-фронты по стране exit'а (DE/PL/NL/FR/LV/SE/FI/US/UK/JP/SG/AU/CA). |
 | `xray_merge_configs`       | Слить N конфигов с разрешением коллизий тегов.                                          |
 | `xray_github_search`       | Поиск issues/PR/discussions по XTLS GitHub репозиториям.                                |
 | `xray_github_fetch_issue`  | Получить одну issue/PR/discussion с полным body + топ комментариев.                     |
 | `xray_refresh_cache`       | Bulk перезатяжка кеша доков (`scope: all/stale/category`). Опц. `discover` + `refresh_geocatalogue: true` (заодно перетянет v2fly категории). |
 
-Всего: **16 тулов**.
+Всего: **17 тулов**.
 
 ### Quick toolbelt
 
@@ -398,6 +416,24 @@ Live-проверить кандидата на REALITY SNI:
 ```
 
 > ⚠️ Проба идёт с локальной машины, где запущен `mcp-xray-pilot`. Для решения «работает ли SNI из РФ» — гоняй с РФ-IP отдельно.
+
+Реальный REALITY handshake (ловит то, что `xray_validate_sni_target` пропускает):
+
+```jsonc
+// xray_test_reality_live { "target_host": "2gis.ru" }
+{
+  "ok": true,
+  "target": "2gis.ru:443",
+  "reality_handshake_complete": true,
+  "client_received_real_cert": false,
+  "http_probe_status": 200,
+  "latency_ms": 824,
+  "issues": [],
+  "used_keypair": { "privateKey": "...", "publicKey": "...", "shortId": "a1b2c3d4" }
+}
+```
+
+> При первом вызове скачивает xray-binary в `~/.cache/mcp-xray-pilot/xray-bin/` (~30MB), дальше переиспользует. Если REALITY несовместим с target (как `outlook.live.com` или `www.ozon.ru` — реальные кейсы Flare VPN), `client_received_real_cert: true` и `ok: false`.
 
 Также один MCP **ресурс**: `xray://docs/index`.
 

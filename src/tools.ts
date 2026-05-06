@@ -331,6 +331,35 @@ export const TOOL_SCHEMAS = [
     },
   },
   {
+    name: "xray_test_reality_live",
+    description:
+      "Spin up a real local pair of xray-core processes (server + client) on " +
+      "ephemeral ports and run a full REALITY handshake against the target. Returns " +
+      "ok=true ONLY if the handshake completed AND the client did NOT receive a real " +
+      "certificate AND an HTTPS probe through the cascade returned 2xx/3xx. Strictly " +
+      "stronger than xray_validate_sni_target — catches targets that pass TLS 1.3+h2 " +
+      "but still break REALITY (e.g. outlook.live.com, www.ozon.ru). Downloads xray " +
+      "binary on first call into ~/.cache/mcp-xray-pilot/xray-bin (cached after).",
+    inputSchema: {
+      type: "object",
+      properties: {
+        target_host: { type: "string", description: 'REALITY target/SNI host, e.g. "2gis.ru".' },
+        target_port: { type: "number", default: 443, minimum: 1, maximum: 65535 },
+        timeout_ms: { type: "number", default: 15000, minimum: 5000, maximum: 60000 },
+        keypair: {
+          type: "object",
+          description: "Optional pre-generated REALITY keypair. If omitted a fresh one is generated.",
+          properties: {
+            privateKey: { type: "string" },
+            publicKey: { type: "string" },
+          },
+          required: ["privateKey", "publicKey"],
+        },
+      },
+      required: ["target_host"],
+    },
+  },
+  {
     name: "xray_suggest_sni_for_country",
     description:
       "Suggest curated REALITY SNI/target hosts for an exit-node country. Returns " +

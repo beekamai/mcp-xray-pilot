@@ -21,6 +21,7 @@ import {
 import { generateShortIds, type GenShortIdsArgs } from "./tools_impl/gen_short_ids.js";
 import { generateRealityKeypair } from "./tools_impl/gen_reality_keypair.js";
 import { validateSniTarget, type ValidateSniArgs } from "./tools_impl/validate_sni.js";
+import { testRealityLive, type TestRealityLiveArgs } from "./tools_impl/test_reality_live.js";
 import {
   suggestSniForCountry,
   listSupportedCountries,
@@ -250,6 +251,16 @@ async function validateSniHandler(args: ValidateSniArgs): Promise<McpResponse> {
   }
 }
 
+async function testRealityLiveHandler(args: TestRealityLiveArgs): Promise<McpResponse> {
+  if (!args.target_host || !args.target_host.trim())
+    return err("Missing required parameter: target_host");
+  try {
+    return json(await testRealityLive(args));
+  } catch (e) {
+    return err(`xray_test_reality_live failed: ${(e as Error).message}`);
+  }
+}
+
 async function suggestSniHandler(args: SuggestSniArgs): Promise<McpResponse> {
   if (!args.country_code) {
     return err(
@@ -304,6 +315,8 @@ export async function dispatch(
       return genRealityKeypairHandler();
     case "xray_validate_sni_target":
       return validateSniHandler(args as ValidateSniArgs);
+    case "xray_test_reality_live":
+      return testRealityLiveHandler(args as TestRealityLiveArgs);
     case "xray_suggest_sni_for_country":
       return suggestSniHandler(args as SuggestSniArgs);
     case "xray_refresh_cache":
