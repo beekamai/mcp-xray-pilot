@@ -4,7 +4,7 @@ source_url: https://raw.githubusercontent.com/XTLS/Xray-docs-next/main/docs/en/c
 title: VLESS (XTLS Vision Seed)
 category: inbounds
 slug: inbounds/vless
-fetched_at: 2026-05-04T18:42:51.696Z
+fetched_at: 2026-05-18T10:21:43.927Z
 ---
 # VLESS (XTLS Vision Seed)
 
@@ -14,38 +14,50 @@ Unlike [VMess](./vmess.md), VLESS does not depend on system time. The authentica
 
 ## InboundConfigurationObject
 
+`InboundConfigurationObject` corresponds to the `settings` item in [`InboundObject`](../inbound.md).
+
 ```json
 {
-  "clients": [
+  "inbounds": [
     {
-      "id": "5783a3e7-e373-51cd-8642-c83782b807c5",
-      "level": 0,
-      "email": "love@xray.com",
-      "flow": "xtls-rprx-vision",
-      "reverse": {}
-    }
-  ],
-  "decryption": "none",
-  "fallbacks": [
-    {
-      "dest": 80
+      // ...
+      "protocol": "vless",
+      "settings": {
+        // [!code focus:15]
+        "users": [
+          {
+            "id": "5783a3e7-e373-51cd-8642-c83782b807c5",
+            "level": 0,
+            "email": "love@xray.com",
+            "flow": "xtls-rprx-vision",
+            "reverse": {}
+          }
+        ],
+        "decryption": "none",
+        "fallbacks": [
+          {
+            "dest": 80
+          }
+        ]
+      }
     }
   ]
 }
 ```
 
-> `clients`: \[ [ClientObject](#clientobject) \]
+> `users`: \[ [UserObject](#userobject) \]
 
 An array representing a group of users approved by the server.
 
-Each item is a user [ClientObject](#clientobject).
+Each item is a user [UserObject](#userobject).
 
 > `decryption`: "none"
 
 [VLESS Encryption](https://github.com/XTLS/Xray-core/pull/5067) settings. Cannot be left empty; to disable, explicitly set it to `"none"`.
 
-It is recommended for most users to use `./xray vlessenc` to automatically generate this field to ensure no errors in writing. The detailed configuration below is recommended for advanced users only.
+It is recommended for most users to use the `xray vlessenc` command to automatically generate this field to avoid configuration mistakes. The detailed configuration below is recommended for advanced users only.
 
+::: details Detailed configuration
 Its format is a string of detailed configuration fields connected by `.`. For example: `mlkem768x25519plus.native.600s.100-111-1111.75-0-111.50-0-3333.ptjHQxBQxTJ9MWr2cd5qWIflBSACHOevTauCQwa_71U`. This document refers to the individual parts separated by dots as blocks.
 
 - The 1st block is the handshake method. Currently, there is only `mlkem768x25519plus`. Requires the server and client to match.
@@ -60,13 +72,14 @@ Following this is padding. After the connection is established, the server sends
 The first padding block has special requirements: it requires 100% probability and a minimum length greater than 0. If no padding exists, the core automatically uses `100-111-1111.75-0-111.50-0-3333` as the padding setting.
 
 The last block is identified by the core as the parameter used to authenticate the client. It can be generated using `./xray x25519` (using the PrivateKey part) or `./xray mlkem768` (using the Seed part). It must correspond to the client. `mlkem768` is a post-quantum algorithm that prevents the private key from being cracked by quantum computers (in the future) to impersonate the server if client parameters are leaked. This parameter is only used for verification; the handshake process is post-quantum secure regardless, and existing encrypted data cannot be cracked by future quantum computers.
+:::
 
 > `fallbacks`: \[ [FallbackObject](../features/fallback.md) \]
 
 An array containing a series of powerful fallback distribution configurations (optional).
 For specific fallback configurations, please click [FallbackObject](../features/fallback.md#fallbacks-configuration).
 
-### ClientObject
+### UserObject
 
 ```json
 {
@@ -74,7 +87,7 @@ For specific fallback configurations, please click [FallbackObject](../features/
   "level": 0,
   "email": "love@xray.com",
   "flow": "xtls-rprx-vision",
-  "reverse" {}
+  "reverse": {}
 }
 ```
 
@@ -113,23 +126,28 @@ Currently, the following flow control modes are available in the inbound protoco
 
 XTLS is only available under the following combinations:
 
-- TCP+TLS/Reality: In this case, encrypted data is directly copied at the underlying layer (if transmitting TLS 1.3).
+- TCP+TLS/REALITY: In this case, encrypted data is directly copied at the underlying layer (if transmitting TLS 1.3).
 - VLESS Encryption: No underlying transport restrictions. If the underlying layer does not support direct copying (see above), it only penetrates Encryption.
 
 > `reverse`: struct
 
-VLESS simplified reverse proxy configuration. It functions the same as the core's internal general reverse proxy but with simpler configuration.
+VLESS simplified reverse proxy configuration.
 
-The presence of this item indicates that connections from this user can be used to establish a reverse proxy tunnel.
-
-Current syntax:
+The presence of this item indicates that connections from this user can be used to establish a reverse proxy tunnel, while disabling normal forward proxy usage.
 
 ```json
-"reverse": {
-  "tag": "r-outbound"
+{
+  "reverse": {
+    "tag": "r-outbound"
+  }
 }
 ```
 
 `tag` is the outbound proxy tag for this reverse proxy. Routing traffic to this outbound using routing rules will forward it through the reverse proxy to the connected client's routing system (see VLESS Outbound for client configuration details).
 
 When multiple different connections (potentially from different devices) are connected, the core will randomly select one to dispatch reverse proxy data for each request.
+
+::: tip
+Full tutorial: [VLESS Reverse Proxy Examples](../../document/level-2/vless_reverse.md)
+:::
+

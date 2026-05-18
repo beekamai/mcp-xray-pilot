@@ -4,7 +4,7 @@ source_url: https://raw.githubusercontent.com/XTLS/Xray-docs-next/main/docs/en/c
 title: Observatory
 category: basic
 slug: observatory
-fetched_at: 2026-05-04T18:42:44.122Z
+fetched_at: 2026-05-18T10:21:39.591Z
 ---
 # Observatory
 
@@ -12,12 +12,16 @@ The Observatory component uses HTTPing to probe the connection status of outboun
 
 ## ObservatoryObject
 
+`ObservatoryObject` corresponds to the `observatory` item in the configuration file.
+
 ```json
 {
-  "subjectSelector": ["outbound"],
-  "probeUrl": "https://www.google.com/generate_204",
-  "probeInterval": "10s",
-  "enableConcurrency": false
+  "observatory": {
+    "subjectSelector": ["outbound"],
+    "probeUrl": "https://www.google.com/generate_204",
+    "probeInterval": "10s",
+    "enableConcurrency": false
+  }
 }
 ```
 
@@ -42,10 +46,14 @@ Note that since the request interval is fixed, periodic fixed requests might lea
 
 ## BurstObservatoryObject
 
+`BurstObservatoryObject` corresponds to the `burstObservatory` item in the configuration file.
+
 ```json
 {
-  "subjectSelector": ["outbound"],
-  "pingConfig": {}
+  "burstObservatory": {
+    "subjectSelector": ["outbound"],
+    "pingConfig": {}
+  }
 }
 ```
 
@@ -113,3 +121,4 @@ The working principle of Burst Observatory is to immediately schedule probe task
 
 `interval` and `sampling` jointly affect the sensitivity of failover and recovery. When a node fails probes continuously, it takes at fastest 1 probe cycle to mark the node as faulty, and at slowest 2 probe cycles. Recovering from failure requires one successful probe, which depends on the probe density; at slowest, it takes 1 probe cycle.
 :::
+

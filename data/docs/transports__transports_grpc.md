@@ -4,7 +4,7 @@ source_url: https://raw.githubusercontent.com/XTLS/Xray-docs-next/main/docs/en/c
 title: gRPC
 category: transports
 slug: transports/grpc
-fetched_at: 2026-05-04T18:43:03.782Z
+fetched_at: 2026-05-18T10:21:50.813Z
 ---
 # gRPC
 
@@ -43,18 +43,30 @@ If you are using fallback, please note the following:
 
 ## GRPCObject
 
-`GRPCObject` corresponds to the `grpcSettings` item in the transport configuration.
+`GRPCObject` corresponds to the `grpcSettings` item in [`StreamSettingsObject`](../transport.md#streamsettingsobject).
 
 ```json
 {
-  "authority": "grpc.example.com",
-  "serviceName": "name",
-  "multiMode": false,
-  "user_agent": "custom user agent",
-  "idle_timeout": 60,
-  "health_check_timeout": 20,
-  "permit_without_stream": false,
-  "initial_windows_size": 0
+  // outbound example; also applies to inbound
+  "outbounds": [
+    {
+      // ...
+      "streamSettings": {
+        "network": "grpc",
+        "grpcSettings": {
+          // [!code focus:8]
+          "authority": "grpc.example.com",
+          "serviceName": "name",
+          "multiMode": false,
+          "user_agent": "custom user agent",
+          "idle_timeout": 60,
+          "health_check_timeout": 20,
+          "permit_without_stream": false,
+          "initial_windows_size": 0
+        }
+      }
+    }
+  ]
 }
 ```
 
@@ -135,3 +147,4 @@ Initial window size for h2 Stream. When the value is less than or equal to `0`, 
 ::: tip
 When going through Cloudflare CDN, you can set the value to `65536` or higher (disabling Dynamic Window) to prevent Cloudflare CDN from sending unexpected h2 GOAWAY frames to close existing connections.
 :::
+

@@ -4,7 +4,7 @@ source_url: https://raw.githubusercontent.com/XTLS/Xray-docs-next/main/docs/en/c
 title: HTTPUpgrade
 category: transports
 slug: transports/httpupgrade
-fetched_at: 2026-05-04T18:43:04.806Z
+fetched_at: 2026-05-18T10:21:51.453Z
 ---
 # HTTPUpgrade
 
@@ -15,18 +15,30 @@ Its design is not recommended for standalone use; instead, it is intended to wor
 **It is recommended to switch to [XHTTP](https://github.com/XTLS/Xray-core/discussions/4113) to avoid significant traffic fingerprints such as HTTPUpgrade's "ALPN is http/1.1".**
 :::
 
-## HttpUpgradeObject
+## HTTPUpgradeObject
 
-`HttpUpgradeObject` corresponds to the `httpupgradeSettings` item in transport configuration.
+`HTTPUpgradeObject` corresponds to the `httpupgradeSettings` item in [`StreamSettingsObject`](../transport.md#streamsettingsobject).
 
 ```json
 {
-  "acceptProxyProtocol": false,
-  "path": "/",
-  "host": "xray.com",
-  "headers": {
-    "key": "value"
-  }
+  // outbound example; also applies to inbound
+  "outbounds": [
+    {
+      // ...
+      "streamSettings": {
+        "network": "httpupgrade",
+        "httpupgradeSettings": {
+          // [!code focus:6]
+          "acceptProxyProtocol": false,
+          "path": "/",
+          "host": "xray.com",
+          "headers": {
+            "key": "value"
+          }
+        }
+      }
+    }
+  ]
 }
 ```
 
@@ -59,3 +71,4 @@ Priority of the host sent by the client: `host` > `headers` > `address`
 Client-only. Custom HTTP headers. A key-value pair, where each key represents the name of an HTTP header, and the corresponding value is a string.
 
 Default value is empty.
+

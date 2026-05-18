@@ -4,7 +4,7 @@ source_url: https://raw.githubusercontent.com/XTLS/Xray-docs-next/main/docs/en/c
 title: Local Policy
 category: basic
 slug: policy
-fetched_at: 2026-05-04T18:42:41.083Z
+fetched_at: 2026-05-18T10:21:37.870Z
 ---
 # Local Policy
 
@@ -138,3 +138,4 @@ When set to `true`, enables uplink traffic statistics for all outbound proxies.
 > `statsOutboundDownlink`: true | false
 
 When set to `true`, enables downlink traffic statistics for all outbound proxies.
+

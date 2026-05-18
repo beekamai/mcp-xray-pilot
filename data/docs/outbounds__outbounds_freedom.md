@@ -4,7 +4,7 @@ source_url: https://raw.githubusercontent.com/XTLS/Xray-docs-next/main/docs/en/c
 title: Freedom (fragment, noises)
 category: outbounds
 slug: outbounds/freedom
-fetched_at: 2026-05-04T18:42:55.761Z
+fetched_at: 2026-05-18T10:21:46.224Z
 ---
 # Freedom (fragment, noises)
 
@@ -16,33 +16,44 @@ This outbound has a default safety policy in server-side and reverse-proxy scena
 
 ## OutboundConfigurationObject
 
+`OutboundConfigurationObject` corresponds to the `settings` item in [`OutboundObject`](../outbound.md).
+
 ```json
 {
-  "domainStrategy": "AsIs",
-  "redirect": "127.0.0.1:3366",
-  "userLevel": 0,
-  "fragment": {
-    "packets": "tlshello",
-    "length": "100-200",
-    "interval": "10-20" // Unit: ms
-  },
-  "noises": [
+  "outbounds": [
     {
-      "type": "base64",
-      "packet": "7nQBAAABAAAAAAAABnQtcmluZwZtc2VkZ2UDbmV0AAABAAE=",
-      "delay": "10-16"
-    }
-  ],
-  "proxyProtocol": 0,
-  "finalRules": [
-    {
-      "action": "block",
-      "network": "tcp",
-      "port": "22,25,465,587"
-    },
-    {
-      "action": "block",
-      "ip": ["geoip:cn"]
+      // ...
+      "protocol": "freedom",
+      "settings": {
+        // [!code focus:27]
+        "domainStrategy": "AsIs",
+        "redirect": "127.0.0.1:3366",
+        "userLevel": 0,
+        "fragment": {
+          "packets": "tlshello",
+          "length": "100-200",
+          "interval": "10-20" // Unit: ms
+        },
+        "noises": [
+          {
+            "type": "base64",
+            "packet": "7nQBAAABAAAAAAAABnQtcmluZwZtc2VkZ2UDbmV0AAABAAE=",
+            "delay": "10-16"
+          }
+        ],
+        "proxyProtocol": 0,
+        "finalRules": [
+          {
+            "action": "block",
+            "network": "tcp",
+            "port": "22,25,465,587"
+          },
+          {
+            "action": "block",
+            "ip": ["geoip:cn"]
+          }
+        ]
+      }
     }
   ]
 }
@@ -54,7 +65,7 @@ This outbound has a default safety policy in server-side and reverse-proxy scena
 
 Default value `"AsIs"`.
 
-The meanings of all parameters are roughly equivalent to `domainStrategy` in [sockopt](../transport.md#sockoptobject).
+The meanings of all parameters are roughly equivalent to `domainStrategy` in [Sockopt](../transports/sockopt.md#sockoptobject).
 
 Only using `"AsIs"` here allows passing the domain name to the subsequent `sockopt` module. If set to non-`"AsIs"` here, causing the domain to be resolved to a specific IP, it will invalidate the subsequent `sockopt.domainStrategy` and its related `happyEyeballs`. (There is no negative impact if these two settings are not adjusted).
 
@@ -168,3 +179,4 @@ An array where each item represents an IP range. The rule takes effect when an i
 Sets how long the blackhole state lasts after a blocking rule matches.
 
 When a rule's `action` is `block` and the target matches, Freedom puts the connection into a blackhole state and closes it after this duration expires. The unit is seconds. It can be written as a fixed value or a range, for example `30` or `30-90`. If omitted, it defaults to `30-90`, which means a random value within that range.
+

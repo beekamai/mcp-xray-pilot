@@ -4,7 +4,7 @@ source_url: https://raw.githubusercontent.com/XTLS/Xray-docs-next/main/docs/en/c
 title: Built-in DNS Server
 category: basic
 slug: dns
-fetched_at: 2026-05-04T18:42:38.958Z
+fetched_at: 2026-05-18T10:21:36.702Z
 ---
 # Built-in DNS Server
 
@@ -364,3 +364,4 @@ Note: It is always constrained by the global `queryStrategy`.
 > `serveStale`: true | false
 
 > `serveExpiredTTL`: number
+

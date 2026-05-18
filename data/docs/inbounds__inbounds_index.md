@@ -4,7 +4,7 @@ source_url: https://raw.githubusercontent.com/XTLS/Xray-docs-next/main/docs/en/c
 title: Xray Inbound Protocols
 category: inbounds
 slug: inbounds/index
-fetched_at: 2026-05-04T18:42:48.232Z
+fetched_at: 2026-05-18T10:21:41.984Z
 ---
 # Xray Inbound Protocols
 
@@ -20,3 +20,4 @@ Xray supports the following inbound protocols:
 - [WireGuard](wireguard.md)
 - [Hysteria](hysteria.md)
 - [TUN](tun.md)
+

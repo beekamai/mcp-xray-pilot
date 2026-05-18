@@ -4,7 +4,7 @@ source_url: https://raw.githubusercontent.com/XTLS/Xray-docs-next/main/docs/en/c
 title: Multiple Configuration Files
 category: features
 slug: features/multiple
-fetched_at: 2026-05-04T18:42:47.728Z
+fetched_at: 2026-05-18T10:21:41.578Z
 ---
 # Multiple Configuration Files
 
@@ -142,3 +142,4 @@ The three configurations will be merged as follows:
 ::: tip
 You can use the `xray run -confdir=./confs -dump` command to view the merged configuration. However, since the core uses the Protobuf data format internally, the configuration format output by the `-dump` option will look different.
 :::
+

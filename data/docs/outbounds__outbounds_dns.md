@@ -4,7 +4,7 @@ source_url: https://raw.githubusercontent.com/XTLS/Xray-docs-next/main/docs/en/c
 title: DNS
 category: outbounds
 slug: outbounds/dns
-fetched_at: 2026-05-04T18:42:55.246Z
+fetched_at: 2026-05-18T10:21:45.950Z
 ---
 # DNS
 
@@ -16,21 +16,32 @@ It can allow queries to the target DNS server, `hijack` them to the built-in [DN
 
 ## OutboundConfigurationObject
 
+`OutboundConfigurationObject` corresponds to the `settings` item in [`OutboundObject`](../outbound.md).
+
 ```json
 {
-  "network": "udp",
-  "address": "1.1.1.1",
-  "port": 53,
-  "userLevel": 0,
-  "rules": [
+  "outbounds": [
     {
-      "action": "reject",
-      "domain": ["domain:example.com"]
-    },
-    {
-      "action": "direct",
-      "qtype": 65,
-      "domain": ["geosite:geolocation-!cn"]
+      // ...
+      "protocol": "dns",
+      "settings": {
+        // [!code focus:15]
+        "rewriteNetwork": "udp",
+        "rewriteAddress": "1.1.1.1",
+        "rewritePort": 53,
+        "userLevel": 0,
+        "rules": [
+          {
+            "action": "reject",
+            "domain": ["domain:example.com"]
+          },
+          {
+            "action": "direct",
+            "qtype": 65,
+            "domain": ["geosite:geolocation-!cn"]
+          }
+        ]
+      }
     }
   ]
 }
@@ -38,15 +49,15 @@ It can allow queries to the target DNS server, `hijack` them to the built-in [DN
 
 The example above only demonstrates the field syntax. See the full example below for a complete configuration.
 
-> `network`: [ "tcp" | "udp" ]
+> `rewriteNetwork`: [ "tcp" | "udp" ]
 
 Modifies the transport protocol used for DNS traffic. Available values are `"tcp"` and `"udp"`. If omitted, the original transport method is preserved.
 
-> `address`: address
+> `rewriteAddress`: address
 
 Modifies the DNS server address. If omitted, the address specified by the source is preserved.
 
-> `port`: number
+> `rewritePort`: number
 
 Modifies the DNS server port. If omitted, the port specified by the source is preserved.
 
@@ -62,7 +73,7 @@ Matches DNS query rules in order, and supports fine-grained control by `qtype` a
 
 If no rule is matched, the built-in fallback rule is used: A and AAAA queries are imported into the built-in DNS module, while other query types are explicitly refused.
 
-## RuleObject
+### RuleObject
 
 ```json
 {
@@ -78,7 +89,7 @@ All matching conditions in a rule are combined with AND logic. If a condition is
 
 Defines the action to take when the rule matches.
 
-- `direct`: Allows the query directly to the target DNS server. If outbound-level `network`, `address`, or `port` is also configured, the query is forwarded to the rewritten target.
+- `direct`: Allows the query directly to the target DNS server. If outbound-level `rewriteNetwork`, `rewriteAddress`, or `rewritePort` is also configured, the query is forwarded to the rewritten target.
 - `hijack`: Imports the query into the built-in [DNS server](../dns.md) for further processing. This can be used for additional routing based on the built-in DNS configuration. Currently, only A and AAAA records are supported.
 - `drop`: Drops the request directly without returning a response.
 - `reject`: Returns an explicit refusal response. Compared with `drop`, this can prevent some applications from waiting too long for a DNS timeout or repeatedly retrying.
@@ -95,3 +106,4 @@ For specific type numbers, refer to the [IANA documentation](https://www.iana.or
 > `domain`: [string]
 
 Matches a list of domains. The syntax is the same as [`domain` in routing rules](../routing.md#ruleobject).
+

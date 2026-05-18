@@ -4,13 +4,13 @@ source_url: https://raw.githubusercontent.com/XTLS/Xray-docs-next/main/docs/en/c
 title: Hysteria
 category: outbounds
 slug: outbounds/hysteria
-fetched_at: 2026-05-04T18:43:00.303Z
+fetched_at: 2026-05-18T10:21:48.780Z
 ---
 # Hysteria
 
 Client implementation of the Hysteria protocol.
 
-This page is very simple because the Hysteria protocol is actually composed of a simple proxy control protocol and a tuned QUIC underlying transport. In Xray, the proxy protocol and the underlying transport are separated. For more details (such as `brutal`), please refer to [hysteriaSettings](../transports/hysteria.md) [finalmask.quicParams](../transport.md#quicParams) in the underlying transport section.
+This page is very simple because the Hysteria protocol is actually composed of a simple proxy control protocol and a tuned QUIC transport implementation. In Xray, the proxy protocol and transport configuration are separated. For more details (such as `brutal`), please refer to transport configuration items [hysteriaSettings](../transports/hysteria.md) and [FinalMask.quicParams](../transports/finalmask.md#quicparams).
 
 ::: tip
 The `hysteria protocol` itself has no authentication. When using with a non `hysteria` transport layer, it will be unable to proxy `udp`, and using it with other transport layers is not recommended.
@@ -18,11 +18,22 @@ The `hysteria protocol` itself has no authentication. When using with a non `hys
 
 ## OutboundConfigurationObject
 
+`OutboundConfigurationObject` corresponds to the `settings` item in [`OutboundObject`](../outbound.md).
+
 ```json
 {
-  "version": 2,
-  "address": "192.168.108.1",
-  "port": 3128
+  "outbounds": [
+    {
+      // ...
+      "protocol": "hysteria",
+      "settings": {
+        // [!code focus:3]
+        "version": 2,
+        "address": "192.168.108.1",
+        "port": 3128
+      }
+    }
+  ]
 }
 ```
 
@@ -37,3 +48,4 @@ Hysteria proxy server address, required.
 > `port`: int
 
 Hysteria proxy server port, required.
+

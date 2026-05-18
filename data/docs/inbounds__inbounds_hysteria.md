@@ -4,24 +4,35 @@ source_url: https://raw.githubusercontent.com/XTLS/Xray-docs-next/main/docs/en/c
 title: Hysteria
 category: inbounds
 slug: inbounds/hysteria
-fetched_at: 2026-05-04T18:42:53.243Z
+fetched_at: 2026-05-18T10:21:44.746Z
 ---
 # Hysteria
 
 ::: tip
-The `hysteria protocol` itself has no authentication; `clients` only take effect when used with the `hysteria` transport layer.
+The `hysteria protocol` itself has no authentication; `users` only take effect when used with the `hysteria` transport layer.
 :::
 
 ## InboundConfigurationObject
 
+`InboundConfigurationObject` corresponds to the `settings` item in [`InboundObject`](../inbound.md).
+
 ```json
 {
-  "version": 2,
-  "clients": [
+  "inbounds": [
     {
-      "auth": "5783a3e7-e373-51cd-8642-c83782b807c5",
-      "level": 0,
-      "email": "love@xray.com"
+      // ...
+      "protocol": "hysteria",
+      "settings": {
+        // [!code focus:8]
+        "version": 2,
+        "users": [
+          {
+            "auth": "5783a3e7-e373-51cd-8642-c83782b807c5",
+            "level": 0,
+            "email": "love@xray.com"
+          }
+        ]
+      }
     }
   ]
 }
@@ -31,11 +42,11 @@ The `hysteria protocol` itself has no authentication; `clients` only take effect
 
 Hysteria version, must be 2.
 
-> `clients`: \[ [ClientObject](#clientobject) \]
+> `users`: \[ [UserObject](#userobject) \]
 
 An array representing a group of users approved by the server.
 
-### ClientObject
+### UserObject
 
 ```json
 {
@@ -58,3 +69,4 @@ The value of `level` corresponds to the `level` value in [policy](../policy.md#p
 > `email`: string
 
 User email, used to distinguish traffic from different users (reflected in logs and statistics).
+

@@ -4,7 +4,7 @@ source_url: https://raw.githubusercontent.com/XTLS/Xray-docs-next/main/docs/en/c
 title: HTTP
 category: outbounds
 slug: outbounds/http
-fetched_at: 2026-05-04T18:42:56.244Z
+fetched_at: 2026-05-18T10:21:46.507Z
 ---
 # HTTP
 
@@ -20,18 +20,29 @@ HTTP protocol.
 
 ## OutboundConfigurationObject
 
+`OutboundConfigurationObject` corresponds to the `settings` item in [`OutboundObject`](../outbound.md).
+
 ```json
 {
-  "address": "192.168.108.1",
-  "port": 3128,
-  "user": "my-username",
-  "pass": "my-password",
-  "level": 0,
-  "email": "love@xray.com",
-  "headers": {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/53.0.2785.143 Safari/537.36",
-    "Accept-Language": "zh-CN,zh;q=0.8,zh-TW;q=0.7,zh-HK;q=0.5,en-US;q=0.3,en;q=0.2"
-  }
+  "outbounds": [
+    {
+      // ...
+      "protocol": "http",
+      "settings": {
+        // [!code focus:10]
+        "address": "192.168.108.1",
+        "port": 3128,
+        "user": "my-username",
+        "pass": "my-password",
+        "level": 0,
+        "email": "love@xray.com",
+        "headers": {
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/53.0.2785.143 Safari/537.36",
+          "Accept-Language": "zh-CN,zh;q=0.8,zh-TW;q=0.7,zh-HK;q=0.5,en-US;q=0.3,en;q=0.2"
+        }
+      }
+    }
+  ]
 }
 ```
 
@@ -68,3 +79,4 @@ Email address, used to identify the user. Optional if the remote server requires
 > `headers`: map{ string, string }
 
 HTTP headers, a map of key-value pairs. Each key represents the name of an HTTP header. All key-value pairs will be attached to every request.
+

@@ -4,7 +4,7 @@ source_url: https://raw.githubusercontent.com/XTLS/Xray-docs-next/main/docs/en/c
 title: Loopback
 category: outbounds
 slug: outbounds/loopback
-fetched_at: 2026-05-04T18:42:56.760Z
+fetched_at: 2026-05-18T10:21:46.786Z
 ---
 # Loopback
 
@@ -12,9 +12,20 @@ Loopback is an outbound data protocol. Its function is to re-inject data sent th
 
 ## OutboundConfigurationObject
 
+`OutboundConfigurationObject` corresponds to the `settings` item in [`OutboundObject`](../outbound.md).
+
 ```json
 {
-  "inboundTag": "TagUseAsInbound"
+  "outbounds": [
+    {
+      // ...
+      "protocol": "loopback",
+      "settings": {
+        // [!code focus:1]
+        "inboundTag": "TagUseAsInbound"
+      }
+    }
+  ]
 }
 ```
 
@@ -63,3 +74,4 @@ If you need to perform finer-grained splitting on traffic that has already been 
   }
 }
 ```
+

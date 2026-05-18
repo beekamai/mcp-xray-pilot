@@ -4,7 +4,7 @@ source_url: https://raw.githubusercontent.com/XTLS/Xray-docs-next/main/docs/en/c
 title: WireGuard
 category: inbounds
 slug: inbounds/wireguard
-fetched_at: 2026-05-04T18:42:52.729Z
+fetched_at: 2026-05-18T10:21:44.478Z
 ---
 # WireGuard
 
@@ -16,16 +16,27 @@ User-space WireGuard protocol implementation.
 
 ## InboundConfigurationObject
 
+`InboundConfigurationObject` corresponds to the `settings` item in [`InboundObject`](../inbound.md).
+
 ```json
 {
-  "secretKey": "PRIVATE_KEY",
-  "peers": [
+  "inbounds": [
     {
-      "publicKey": "PUBLIC_KEY",
-      "allowedIPs": [""]
+      // ...
+      "protocol": "wireguard",
+      "settings": {
+        // [!code focus:8]
+        "secretKey": "PRIVATE_KEY",
+        "peers": [
+          {
+            "publicKey": "PUBLIC_KEY",
+            "allowedIPs": [""]
+          }
+        ],
+        "mtu": 1420 // optional, default 1420
+      }
     }
-  ],
-  "mtu": 1420 // optional, default 1420
+  ]
 }
 ```
 
@@ -76,3 +87,4 @@ Public key, used for verification.
 > `allowedIPs`: string array
 
 Allowed source IPs.
+

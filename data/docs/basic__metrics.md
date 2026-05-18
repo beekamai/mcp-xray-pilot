@@ -4,21 +4,23 @@ source_url: https://raw.githubusercontent.com/XTLS/Xray-docs-next/main/docs/en/c
 title: Metrics
 category: basic
 slug: metrics
-fetched_at: 2026-05-04T18:42:43.602Z
+fetched_at: 2026-05-18T10:21:39.329Z
 ---
 # Metrics
 
 A more direct (and hopefully better) way to export statistics.
 
-## Relevant Configuration
+## MetricsObject
 
-Add `metrics` to the basic configuration:
+`MetricsObject` corresponds to the `metrics` item in the configuration file.
 
 ```json
-    "metrics": {
-        "tag": "Metrics",
-        "listen": "127.0.0.1:11111"
-    }
+{
+  "metrics": {
+    "tag": "Metrics",
+    "listen": "127.0.0.1:11111"
+  }
+}
 ```
 
 > `tag`: string
@@ -260,3 +262,4 @@ xray:
 You can get results similar to this:
 
 ![160428235-2988bf69-5d6c-41ec-8267-1bd512508aa8](https://github.com/chika0801/Xray-docs-next/assets/88967758/455e88ce-ced2-4593-a9fa-425bb293215b)
+
