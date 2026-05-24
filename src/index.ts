@@ -23,7 +23,7 @@ import { dispatch } from "./handlers.js";
 import { loadIndex } from "./state.js";
 
 const server = new Server(
-  { name: "mcp-xray-pilot", version: "0.15.0" },
+  { name: "mcp-xray-pilot", version: "0.15.2" },
   { capabilities: { tools: {}, resources: {} } },
 );
 
