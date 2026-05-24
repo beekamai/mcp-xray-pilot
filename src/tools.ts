@@ -339,7 +339,9 @@ export const TOOL_SCHEMAS = [
       "certificate AND an HTTPS probe through the cascade returned 2xx/3xx. Strictly " +
       "stronger than xray_validate_sni_target — catches targets that pass TLS 1.3+h2 " +
       "but still break REALITY (e.g. outlook.live.com, www.ozon.ru). Downloads xray " +
-      "binary on first call into ~/.cache/mcp-xray-pilot/xray-bin (cached after). " +
+      "binary on first call into ~/.cache/mcp-xray-pilot/xray-bin (cached after), " +
+      "verified against the upstream .dgst (SHA-256) before extraction; set " +
+      "XRAY_PILOT_PINNED_HASH env to enforce a known SHA-256 instead. " +
       "Verdicts are persisted in data/reality-verdicts.json (LRU 50, TTL 24h, key " +
       "host:port) — set force_refresh=true to bypass. Pass multi_targets[] (1..10) " +
       "instead of target_host to batch a sorted comparison in one call.",

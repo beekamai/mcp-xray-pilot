@@ -365,6 +365,58 @@ $env:GITHUB_TOKEN = "ghp_xxx"         # PowerShell
 When `X-RateLimit-Remaining` drops below 10, the tool surfaces an inline
 warning in the response.
 
+## Security model
+
+This package runs entirely in the MCP host's process and the only
+"interesting" thing it does on disk/network is `xray_test_reality_live`,
+which downloads the official **xray-core** binary from
+[XTLS/Xray-core releases](https://github.com/XTLS/Xray-core/releases/latest)
+into `~/.cache/mcp-xray-pilot/xray-bin/` and spawns it locally on
+ephemeral ports.
+
+**Approvals.** There is no in-package permission prompt by design — all
+tool invocations are gated by the MCP host (Claude Code / Claude Desktop
+/ Cursor). Each host has its own permission UX (per-call confirm,
+allowlist, etc.). Pin a specific version in your MCP config
+(`mcp-xray-pilot@0.15.0`, not `mcp-xray-pilot`) so a malicious npm
+release cannot silently roll in.
+
+**Integrity of the xray binary.** Since v0.15:
+
+1. The matching `<asset>.zip.dgst` from the same GitHub release is
+   downloaded alongside the zip, and the zip is verified against its
+   `SHA2-256=` line **before** extraction. Mismatched payloads are
+   renamed to `xray.rejected-<timestamp>.zip` for inspection and the
+   tool aborts.
+2. If you want a stronger guarantee than "trust whatever XTLS ships
+   right now", set `XRAY_PILOT_PINNED_HASH` to a known SHA-256 — the
+   `.dgst` is then ignored and the pinned value is enforced. This
+   defends against a hypothetical compromised XTLS release that ships a
+   matching `.dgst`.
+
+   ```bash
+   # Linux / macOS — read the hash once, then pin it.
+   curl -sL https://github.com/XTLS/Xray-core/releases/latest/download/Xray-linux-64.zip.dgst \
+     | awk '/^SHA2-256=/ {print $2}'
+   export XRAY_PILOT_PINNED_HASH=23cd9af9...
+   ```
+
+   ```powershell
+   $env:XRAY_PILOT_PINNED_HASH = "23cd9af9..."
+   ```
+
+**What this does NOT do.** XTLS does not GPG-sign `.dgst` files, so an
+attacker with write access to the releases page can ship a coherent
+zip+dgst pair. The pinned-hash path is your defense against that. The
+package does not sandbox the spawned xray binary — it runs with the
+permissions of the MCP host process. If you need stronger isolation,
+run the MCP host inside a container or a dedicated user account.
+
+**`GITHUB_TOKEN`.** Optional, used only by `xray_github_search` /
+`xray_github_fetch_issue`. A **fine-grained PAT with read-only public
+repo scope** is recommended over classic PATs. The token is read from
+the process env at call time and never persisted by the package.
+
 ## Roadmap
 
 See [ROADMAP.md](./ROADMAP.md). All v0.1–v0.11 milestones are checked off.
@@ -713,6 +765,56 @@ $env:GITHUB_TOKEN = "ghp_xxx"         # PowerShell
 
 Когда `X-RateLimit-Remaining` падает ниже 10, тул возвращает inline-warning
 в ответе.
+
+## Модель безопасности
+
+Пакет крутится внутри процесса MCP-хоста, и единственное «опасное»
+действие на диск/сеть — `xray_test_reality_live`, который скачивает
+официальный бинарь **xray-core** из
+[XTLS/Xray-core releases](https://github.com/XTLS/Xray-core/releases/latest)
+в `~/.cache/mcp-xray-pilot/xray-bin/` и запускает его локально на
+ephemeral портах.
+
+**Approvals.** Встроенного permission-prompt'а в пакете нет — это by
+design. Все тулколлы гейтятся MCP-хостом (Claude Code / Claude Desktop /
+Cursor) — у каждого хоста свой UX (per-call confirm, allowlist и т.д.).
+Пиньте конкретную версию в MCP-конфиге (`mcp-xray-pilot@0.15.0`, а не
+просто `mcp-xray-pilot`), чтобы вредоносный npm-релиз не подкатился
+тихо.
+
+**Целостность бинаря xray.** Начиная с v0.15:
+
+1. Рядом со скачиванием zip-а тянется `<asset>.zip.dgst` из того же
+   GitHub-релиза, и **до** распаковки zip проверяется против строки
+   `SHA2-256=`. Если хэши не совпали — payload переименовывается в
+   `xray.rejected-<timestamp>.zip` для разбора, и тул abort'ится.
+2. Если хочется жёстче чем «доверяю тому что XTLS залил прямо сейчас» —
+   задайте `XRAY_PILOT_PINNED_HASH` с известным SHA-256. Тогда `.dgst`
+   игнорируется, проверяется ваше захардкоженное значение. Это защищает
+   от гипотетического compromised XTLS-релиза, где злоумышленник залил
+   согласованную пару zip+dgst.
+
+   ```bash
+   # Linux / macOS — снять хэш один раз, потом пиннуть.
+   curl -sL https://github.com/XTLS/Xray-core/releases/latest/download/Xray-linux-64.zip.dgst \
+     | awk '/^SHA2-256=/ {print $2}'
+   export XRAY_PILOT_PINNED_HASH=23cd9af9...
+   ```
+
+   ```powershell
+   $env:XRAY_PILOT_PINNED_HASH = "23cd9af9..."
+   ```
+
+**Чего пакет НЕ делает.** XTLS не GPG-подписывает `.dgst`, поэтому
+атакер с правами на releases-страницу может выкатить согласованную пару
+zip+dgst. Защита от этого — pinned-hash. Sandbox для запущенного xray
+пакет не делает — бинарь работает с правами процесса MCP-хоста. Хотите
+жёстче — запускайте MCP-хост в контейнере или под отдельным юзером.
+
+**`GITHUB_TOKEN`.** Опционально, используется только
+`xray_github_search` / `xray_github_fetch_issue`. Рекомендуется
+**fine-grained PAT с read-only scope для публичных репо** вместо
+classic PAT. Токен читается из env при вызове и пакетом не сохраняется.
 
 ## Roadmap
 

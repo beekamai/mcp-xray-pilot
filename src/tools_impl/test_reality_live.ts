@@ -46,7 +46,7 @@ import {
 import { homedir, tmpdir, platform, arch } from "node:os";
 import path, { join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { randomBytes, randomUUID } from "node:crypto";
+import { randomBytes, randomUUID, createHash } from "node:crypto";
 import { createServer as createTcpServer, connect as netConnect, type Socket } from "node:net";
 import { connect as tlsConnectRaw, type TLSSocket } from "node:tls";
 import { request as httpsRequest } from "node:https";
@@ -88,6 +88,8 @@ export interface TestRealityLiveMultiResult {
 
 interface XrayAsset {
   url: string;
+  dgstUrl: string;
+  zipName: string;
   binaryName: string;
   cacheDir: string;
   binaryPath: string;
@@ -115,10 +117,30 @@ function xrayAssetForPlatform(): XrayAsset {
   }
   return {
     url: `${base}/${zipName}`,
+    dgstUrl: `${base}/${zipName}.dgst`,
+    zipName,
     binaryName,
     cacheDir,
     binaryPath: join(cacheDir, binaryName),
   };
+}
+
+/* Parse XTLS .dgst format. Each line is `<algo>= <hex>` (e.g. `SHA2-256= abc...`).
+ * Returns the hex digest for the requested algo, or null if absent. */
+function parseDgst(buf: Buffer, algo: string): string | null {
+  const text = buf.toString("utf8");
+  const needle = `${algo}=`;
+  for (const raw of text.split(/\r?\n/)) {
+    const line = raw.trim();
+    if (!line.startsWith(needle)) continue;
+    const hex = line.slice(needle.length).trim().toLowerCase();
+    return /^[0-9a-f]+$/.test(hex) ? hex : null;
+  }
+  return null;
+}
+
+function sha256Hex(buf: Buffer): string {
+  return createHash("sha256").update(buf).digest("hex");
 }
 
 async function fileExists(p: string): Promise<boolean> {
@@ -203,6 +225,61 @@ async function ensureXrayBinary(): Promise<string> {
 
   const zipPath = join(asset.cacheDir, "xray.zip");
   const body = await httpGetRedirect(asset.url);
+
+  /* Integrity check before extraction.
+   * Priority:
+   *   1. XRAY_PILOT_PINNED_HASH env (user-supplied SHA-256, defends against
+   *      a compromised XTLS release that ships a matching .dgst).
+   *   2. <zip>.dgst from the same GitHub release (defends against MITM on
+   *      the download channel). */
+  const actual = sha256Hex(body);
+  const pinned = (process.env.XRAY_PILOT_PINNED_HASH ?? "").trim().toLowerCase();
+  if (pinned) {
+    if (!/^[0-9a-f]{64}$/.test(pinned)) {
+      throw new Error(
+        `XRAY_PILOT_PINNED_HASH must be 64 hex chars (SHA-256), got ${pinned.length}`,
+      );
+    }
+    if (actual !== pinned) {
+      const rejected = join(asset.cacheDir, `xray.rejected-${Date.now()}.zip`);
+      await writeFile(rejected, body);
+      throw new Error(
+        `xray binary SHA-256 mismatch (pinned): expected ${pinned}, got ${actual}. ` +
+          `Rejected payload saved to ${rejected} for inspection.`,
+      );
+    }
+    console.error(
+      `[mcp-xray-pilot] verified ${asset.zipName} SHA-256 against XRAY_PILOT_PINNED_HASH`,
+    );
+  } else {
+    let expected: string | null = null;
+    try {
+      const dgstBuf = await httpGetRedirect(asset.dgstUrl);
+      expected = parseDgst(dgstBuf, "SHA2-256");
+    } catch (e) {
+      throw new Error(
+        `failed to fetch ${asset.zipName}.dgst for integrity check: ${(e as Error).message}. ` +
+          `Set XRAY_PILOT_PINNED_HASH to bypass and pin a known SHA-256 instead.`,
+      );
+    }
+    if (!expected) {
+      throw new Error(
+        `${asset.zipName}.dgst does not contain a SHA2-256 line — cannot verify`,
+      );
+    }
+    if (actual !== expected) {
+      const rejected = join(asset.cacheDir, `xray.rejected-${Date.now()}.zip`);
+      await writeFile(rejected, body);
+      throw new Error(
+        `xray binary SHA-256 mismatch (.dgst): expected ${expected}, got ${actual}. ` +
+          `Rejected payload saved to ${rejected} for inspection.`,
+      );
+    }
+    console.error(
+      `[mcp-xray-pilot] verified ${asset.zipName} SHA-256 (${actual.slice(0, 12)}…) against upstream .dgst`,
+    );
+  }
+
   await writeFile(zipPath, body);
   await tryExtractZip(zipPath, asset.cacheDir);
   await rm(zipPath, { force: true });
