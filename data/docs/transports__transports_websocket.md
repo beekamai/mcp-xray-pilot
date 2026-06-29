@@ -4,7 +4,7 @@ source_url: https://raw.githubusercontent.com/XTLS/Xray-docs-next/main/docs/en/c
 title: WebSocket
 category: transports
 slug: transports/websocket
-fetched_at: 2026-05-04T18:43:04.294Z
+fetched_at: 2026-06-29T11:18:46.379Z
 ---
 # WebSocket
 
@@ -22,17 +22,29 @@ WebSocket will recognize the `X-Forwarded-For` header in HTTP requests to overwr
 
 ## WebSocketObject
 
-`WebSocketObject` corresponds to the `wsSettings` item in the transport configuration.
+`WebSocketObject` corresponds to the `wsSettings` item in [`StreamSettingsObject`](../transport.md#streamsettingsobject).
 
 ```json
 {
-  "acceptProxyProtocol": false,
-  "path": "/",
-  "host": "xray.com",
-  "headers": {
-    "key": "value"
-  },
-  "heartbeatPeriod": 10
+  // outbound example; also applies to inbound
+  "outbounds": [
+    {
+      // ...
+      "streamSettings": {
+        "network": "websocket",
+        // [!code focus:9]
+        "wsSettings": {
+          "acceptProxyProtocol": false,
+          "path": "/",
+          "host": "xray.com",
+          "headers": {
+            "key": "value"
+          },
+          "heartbeatPeriod": 10
+        }
+      }
+    }
+  ]
 }
 ```
 
@@ -73,3 +85,4 @@ Specifies a fixed time interval to send a Ping message to keep the connection al
 ## Browser Dialer
 
 Use a browser to handle TLS. See [Browser Dialer](../features/browser_dialer.md) for details.
+

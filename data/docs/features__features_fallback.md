@@ -4,7 +4,7 @@ source_url: https://raw.githubusercontent.com/XTLS/Xray-docs-next/main/docs/en/c
 title: Fallback
 category: features
 slug: features/fallback
-fetched_at: 2026-05-04T18:42:46.157Z
+fetched_at: 2026-06-29T11:18:36.511Z
 ---
 # Fallback
 
@@ -19,11 +19,13 @@ Currently, you can use the fallback feature by configuring `fallbacks` when usin
 ## Fallbacks Configuration
 
 ```json
+{
   "fallbacks": [
     {
       "dest": 80
     }
   ]
+}
 ```
 
 > `fallbacks`: \[ [FallbackObject](#fallbackobject) \]
@@ -46,7 +48,7 @@ An array containing a series of powerful fallback distribution configurations.
 
 The `fallbacks` item is optional and can only be used with the TCP+TLS transport combination.
 
-- When this item has child elements, [Inbound TLS](../transport.md#tlsobject) must set `"alpn":["http/1.1"]`.
+- When this item has child elements, [Inbound TLS](../transports/tls.md#tlsobject) must set `"alpn":["http/1.1"]`.
 
 Usually, you need to first set a default fallback with both `alpn` and `path` omitted or empty, and then configure other traffic splitting as needed.
 
@@ -64,7 +66,7 @@ Attempts to match the TLS ALPN negotiation result. Empty means any. Default is `
 
 Xray will only attempt to read the TLS ALPN negotiation result when necessary. If successful, it outputs `realAlpn =` to the info log.
 Usage: Solves the issue where Nginx's h2c service cannot be compatible with http/1.1 simultaneously. Nginx would require two `listen` lines, for 1.1 and h2c respectively.
-Note: When `fallbacks` `alpn` contains `"h2"`, [Inbound TLS](../transport.md#tlsobject) needs to set `"alpn":["h2","http/1.1"]` to support h2 access.
+Note: When `fallbacks` `alpn` contains `"h2"`, [Inbound TLS](../transports/tls.md#tlsobject) needs to set `"alpn":["h2","http/1.1"]` to support h2 access.
 
 ::: tip
 The `alpn` set in Fallback matches the _actually negotiated_ ALPN, whereas the `alpn` set in Inbound TLS is the list of _optional_ ALPNs during the handshake. The meanings are different.
@@ -108,3 +110,4 @@ If you are [configuring Nginx to accept PROXY protocol](https://docs.nginx.com/n
   - [Analysis of Fallbacks Features](../../document/level-1/fallbacks-lv1)
 
 ## Fallbacks Design Theory <Badge text="WIP" type="warning"/>
+

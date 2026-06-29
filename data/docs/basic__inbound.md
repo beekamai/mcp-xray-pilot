@@ -4,7 +4,7 @@ source_url: https://raw.githubusercontent.com/XTLS/Xray-docs-next/main/docs/en/c
 title: Inbound Proxy
 category: basic
 slug: inbound
-fetched_at: 2026-05-04T18:42:40.036Z
+fetched_at: 2026-06-29T11:18:33.247Z
 ---
 # Inbound Proxy
 
@@ -46,7 +46,7 @@ The solution is not to listen on `0.0.0.0` but to listen on the specific IP addr
 
 Supports Unix domain sockets in absolute path format, such as `"/dev/shm/domain.socket"`. You can add `@` at the beginning to represent [abstract](https://www.man7.org/linux/man-pages/man7/unix.7.html), and `@@` for abstract with padding.
 
-When filling in a Unix domain socket, `port` and `allocate` will be ignored. The protocol can currently be VLESS, VMess, or Trojan, and applies only to TCP-based underlying transports, such as `tcp`, `websocket`, `grpc`. UDP-based transports like `mkcp` are not supported.
+When filling in a Unix domain socket, `port` and `allocate` will be ignored. The protocol can currently be VLESS, VMess, or Trojan, and applies only to TCP-based transport methods, such as `tcp`, `websocket`, `grpc`. UDP-based transports like `mkcp` are not supported.
 
 When filling in a Unix domain socket, you can use the format `"/dev/shm/domain.socket,0666"`, i.e., adding a comma and access permission indicators after the socket, to specify the access permissions of the socket. This can be used to solve socket permission issues that occur by default.
 
@@ -62,7 +62,7 @@ When only one port is specified, Xray will listen for inbound connections on thi
 
 Note that listening on a port is a relatively expensive operation. Listening on a port range that is too large may cause a significant increase in resource usage or even cause Xray to fail to work properly. Generally speaking, problems may begin to appear when the number of listening ports approaches four digits. If you need to use a very large range, please consider using iptables for redirection instead of setting it here.
 
-> `protocol`: "dokodemo-door" | "http" | "shadowsocks" | "socks" | "vless" | "vmess" | "trojan" | "wireguard" | "hysteria"
+> `protocol`: "tunnel" | "http" | "shadowsocks" | "socks" | "vless" | "vmess" | "trojan" | "wireguard" | "hysteria" | "tun"
 
 Connection protocol name. See the list of available [Inbound Protocols](./inbounds/) on the left.
 
@@ -70,9 +70,9 @@ Connection protocol name. See the list of available [Inbound Protocols](./inboun
 
 Specific configuration content, which varies by protocol. See `InboundConfigurationObject` in each protocol section for details.
 
-> `streamSettings`: [StreamSettingsObject](./transport.md#streamsettingsobject)
+> `streamSettings`: [StreamSettingsObject](./transport.md)
 
-Underlying transport method (transport) is the way the current Xray node connects with other nodes.
+Transport configuration for this inbound.
 
 > `tag`: string
 > The identifier of this inbound connection, used to locate this connection in other configurations.
@@ -137,11 +137,13 @@ If you need to troubleshoot the cause of certain problems, you can test by disab
 :::
 
 ```json
-"domainsExcluded": [
+{
+  "domainsExcluded": [
     "courier.push.apple.com", // iOS push notifications
     "Mijia Cloud", // Mijia smart devices
     "dlg.io.mi.com"
-]
+  ]
+}
 ```
 
 > `ipsExcluded`: [string]
@@ -157,3 +159,4 @@ This item requires `destOverride` to be enabled to work.
 ::: tip
 When it is guaranteed that **the proxied connection can obtain correct DNS resolution**, using `routeOnly` while enabling `destOverride`, and setting the routing matching strategy `domainStrategy` to `AsIs`, allows for domain and IP traffic splitting without DNS resolution throughout the process. In this case, the IP used when matching IP rules is the original IP of the domain name.
 :::
+

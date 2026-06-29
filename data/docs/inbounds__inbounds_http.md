@@ -4,7 +4,7 @@ source_url: https://raw.githubusercontent.com/XTLS/Xray-docs-next/main/docs/en/c
 title: HTTP
 category: inbounds
 slug: inbounds/http
-fetched_at: 2026-05-04T18:42:49.716Z
+fetched_at: 2026-06-29T11:18:38.434Z
 ---
 # HTTP
 
@@ -29,24 +29,35 @@ Use the following environment variables in Linux to enable a global HTTP proxy f
 
 ## InboundConfigurationObject
 
+`InboundConfigurationObject` corresponds to the `settings` item in [`InboundObject`](../inbound.md).
+
 ```json
 {
-  "accounts": [
+  "inbounds": [
     {
-      "user": "my-username",
-      "pass": "my-password"
+      // ...
+      "protocol": "http",
+      // [!code focus:10]
+      "settings": {
+        "users": [
+          {
+            "user": "my-username",
+            "pass": "my-password"
+          }
+        ],
+        "allowTransparent": false,
+        "userLevel": 0
+      }
     }
-  ],
-  "allowTransparent": false,
-  "userLevel": 0
+  ]
 }
 ```
 
-> `accounts`: \[[AccountObject](#accountobject)\]
+> `users`: \[[UserObject](#userobject)\]
 
 An array where each element is a user account. Default value is empty.
 
-When `accounts` is not empty, the HTTP proxy will perform Basic Authentication on inbound connections.
+When `users` is not empty, the HTTP proxy will perform Basic Authentication on inbound connections.
 
 > `allowTransparent`: true | false
 
@@ -62,7 +73,7 @@ User level. Connections will use the [Local Policy](../policy.md#levelpolicyobje
 
 The value of `userLevel` corresponds to the value of `level` in [policy](../policy.md#policyobject). If not specified, the default is 0.
 
-### AccountObject
+### UserObject
 
 ```json
 {
@@ -78,3 +89,4 @@ Username, string type. Required.
 > `pass`: string
 
 Password, string type. Required.
+

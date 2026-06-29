@@ -4,7 +4,7 @@ source_url: https://raw.githubusercontent.com/XTLS/Xray-docs-next/main/docs/en/c
 title: Xray Outbound Protocols
 category: outbounds
 slug: outbounds/index
-fetched_at: 2026-05-04T18:42:54.250Z
+fetched_at: 2026-06-29T11:18:40.941Z
 ---
 # Xray Outbound Protocols
 
@@ -22,3 +22,4 @@ Xray supports the following outbound protocols:
 - [VMess](vmess.md)
 - [WireGuard](wireguard.md)
 - [Hysteria](hysteria.md)
+

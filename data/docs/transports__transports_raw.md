@@ -4,7 +4,7 @@ source_url: https://raw.githubusercontent.com/XTLS/Xray-docs-next/main/docs/en/c
 title: RAW
 category: transports
 slug: transports/raw
-fetched_at: 2026-05-04T18:43:01.273Z
+fetched_at: 2026-06-29T11:18:44.799Z
 ---
 # RAW
 
@@ -14,14 +14,26 @@ It can be combined with various protocols in multiple modes.
 
 ## RawObject
 
-`RawObject` corresponds to the `rawSettings` item in transport configuration.
+`RawObject` corresponds to the `rawSettings` item in [`StreamSettingsObject`](../transport.md#streamsettingsobject).
 
 ```json
 {
-  "acceptProxyProtocol": false,
-  "header": {
-    "type": "none"
-  }
+  // outbound example; also applies to inbound
+  "outbounds": [
+    {
+      // ...
+      "streamSettings": {
+        "network": "raw",
+        // [!code focus:6]
+        "rawSettings": {
+          "acceptProxyProtocol": false,
+          "header": {
+            "type": "none"
+          }
+        }
+      }
+    }
+  ]
 }
 ```
 
@@ -154,3 +166,4 @@ HTTP status reason phrase. Default value is `"OK"`.
 HTTP headers. A key-value pair, where each key represents the name of an HTTP header, and the corresponding value is an array.
 
 All keys will be attached to every request, and one corresponding value will be randomly selected. See the example above for default values.
+

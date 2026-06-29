@@ -5,7 +5,7 @@
     "category": "basic",
     "url": "https://xtls.github.io/en/config/api.html",
     "source_url": "https://raw.githubusercontent.com/XTLS/Xray-docs-next/main/docs/en/config/api.md",
-    "fetched_at": "2026-05-04T18:42:38.451Z",
+    "fetched_at": "2026-06-29T11:18:32.380Z",
     "file": "basic__api.md"
   },
   {
@@ -14,7 +14,7 @@
     "category": "basic",
     "url": "https://xtls.github.io/en/config/dns.html",
     "source_url": "https://raw.githubusercontent.com/XTLS/Xray-docs-next/main/docs/en/config/dns.md",
-    "fetched_at": "2026-05-04T18:42:38.958Z",
+    "fetched_at": "2026-06-29T11:18:32.658Z",
     "file": "basic__dns.md"
   },
   {
@@ -23,7 +23,7 @@
     "category": "basic",
     "url": "https://xtls.github.io/en/config/fakedns.html",
     "source_url": "https://raw.githubusercontent.com/XTLS/Xray-docs-next/main/docs/en/config/fakedns.md",
-    "fetched_at": "2026-05-04T18:42:39.509Z",
+    "fetched_at": "2026-06-29T11:18:32.927Z",
     "file": "basic__fakedns.md"
   },
   {
@@ -32,7 +32,7 @@
     "category": "features",
     "url": "https://xtls.github.io/en/config/features/browser_dialer.html",
     "source_url": "https://raw.githubusercontent.com/XTLS/Xray-docs-next/main/docs/en/config/features/browser_dialer.md",
-    "fetched_at": "2026-05-04T18:42:46.683Z",
+    "fetched_at": "2026-06-29T11:18:36.779Z",
     "file": "features__features_browser_dialer.md"
   },
   {
@@ -41,7 +41,7 @@
     "category": "features",
     "url": "https://xtls.github.io/en/config/features/env.html",
     "source_url": "https://raw.githubusercontent.com/XTLS/Xray-docs-next/main/docs/en/config/features/env.md",
-    "fetched_at": "2026-05-04T18:42:47.197Z",
+    "fetched_at": "2026-06-29T11:18:37.119Z",
     "file": "features__features_env.md"
   },
   {
@@ -50,7 +50,7 @@
     "category": "features",
     "url": "https://xtls.github.io/en/config/features/fallback.html",
     "source_url": "https://raw.githubusercontent.com/XTLS/Xray-docs-next/main/docs/en/config/features/fallback.md",
-    "fetched_at": "2026-05-04T18:42:46.157Z",
+    "fetched_at": "2026-06-29T11:18:36.511Z",
     "file": "features__features_fallback.md"
   },
   {
@@ -59,7 +59,7 @@
     "category": "features",
     "url": "https://xtls.github.io/en/config/features/index.html",
     "source_url": "https://raw.githubusercontent.com/XTLS/Xray-docs-next/main/docs/en/config/features/index.md",
-    "fetched_at": "2026-05-04T18:42:45.154Z",
+    "fetched_at": "2026-06-29T11:18:35.992Z",
     "file": "features__features_index.md"
   },
   {
@@ -68,7 +68,7 @@
     "category": "features",
     "url": "https://xtls.github.io/en/config/features/multiple.html",
     "source_url": "https://raw.githubusercontent.com/XTLS/Xray-docs-next/main/docs/en/config/features/multiple.md",
-    "fetched_at": "2026-05-04T18:42:47.728Z",
+    "fetched_at": "2026-06-29T11:18:37.389Z",
     "file": "features__features_multiple.md"
   },
   {
@@ -77,7 +77,7 @@
     "category": "features",
     "url": "https://xtls.github.io/en/config/features/xtls.html",
     "source_url": "https://raw.githubusercontent.com/XTLS/Xray-docs-next/main/docs/en/config/features/xtls.md",
-    "fetched_at": "2026-05-04T18:42:45.640Z",
+    "fetched_at": "2026-06-29T11:18:36.259Z",
     "file": "features__features_xtls.md"
   },
   {
@@ -86,7 +86,7 @@
     "category": "basic",
     "url": "https://xtls.github.io/en/config/geodata.html",
     "source_url": "https://raw.githubusercontent.com/XTLS/Xray-docs-next/main/docs/en/config/geodata.md",
-    "fetched_at": "2026-05-04T18:42:44.635Z",
+    "fetched_at": "2026-06-29T11:18:35.723Z",
     "file": "basic__geodata.md"
   },
   {
@@ -95,7 +95,7 @@
     "category": "basic",
     "url": "https://xtls.github.io/en/config/inbound.html",
     "source_url": "https://raw.githubusercontent.com/XTLS/Xray-docs-next/main/docs/en/config/inbound.md",
-    "fetched_at": "2026-05-04T18:42:40.036Z",
+    "fetched_at": "2026-06-29T11:18:33.247Z",
     "file": "basic__inbound.md"
   },
   {
@@ -104,7 +104,7 @@
     "category": "inbounds",
     "url": "https://xtls.github.io/en/config/inbounds/dokodemo.html",
     "source_url": "https://raw.githubusercontent.com/XTLS/Xray-docs-next/main/docs/en/config/inbounds/dokodemo.md",
-    "fetched_at": "2026-05-04T18:42:48.732Z",
+    "fetched_at": "2026-06-29T11:18:37.913Z",
     "file": "inbounds__inbounds_dokodemo.md"
   },
   {
@@ -113,7 +113,7 @@
     "category": "inbounds",
     "url": "https://xtls.github.io/en/config/inbounds/http.html",
     "source_url": "https://raw.githubusercontent.com/XTLS/Xray-docs-next/main/docs/en/config/inbounds/http.md",
-    "fetched_at": "2026-05-04T18:42:49.716Z",
+    "fetched_at": "2026-06-29T11:18:38.434Z",
     "file": "inbounds__inbounds_http.md"
   },
   {
@@ -122,7 +122,7 @@
     "category": "inbounds",
     "url": "https://xtls.github.io/en/config/inbounds/hysteria.html",
     "source_url": "https://raw.githubusercontent.com/XTLS/Xray-docs-next/main/docs/en/config/inbounds/hysteria.md",
-    "fetched_at": "2026-05-04T18:42:53.243Z",
+    "fetched_at": "2026-06-29T11:18:40.310Z",
     "file": "inbounds__inbounds_hysteria.md"
   },
   {
@@ -131,7 +131,7 @@
     "category": "inbounds",
     "url": "https://xtls.github.io/en/config/inbounds/index.html",
     "source_url": "https://raw.githubusercontent.com/XTLS/Xray-docs-next/main/docs/en/config/inbounds/index.md",
-    "fetched_at": "2026-05-04T18:42:48.232Z",
+    "fetched_at": "2026-06-29T11:18:37.657Z",
     "file": "inbounds__inbounds_index.md"
   },
   {
@@ -140,7 +140,7 @@
     "category": "inbounds",
     "url": "https://xtls.github.io/en/config/inbounds/shadowsocks.html",
     "source_url": "https://raw.githubusercontent.com/XTLS/Xray-docs-next/main/docs/en/config/inbounds/shadowsocks.md",
-    "fetched_at": "2026-05-04T18:42:50.217Z",
+    "fetched_at": "2026-06-29T11:18:38.705Z",
     "file": "inbounds__inbounds_shadowsocks.md"
   },
   {
@@ -149,7 +149,7 @@
     "category": "inbounds",
     "url": "https://xtls.github.io/en/config/inbounds/socks.html",
     "source_url": "https://raw.githubusercontent.com/XTLS/Xray-docs-next/main/docs/en/config/inbounds/socks.md",
-    "fetched_at": "2026-05-04T18:42:50.715Z",
+    "fetched_at": "2026-06-29T11:18:38.987Z",
     "file": "inbounds__inbounds_socks.md"
   },
   {
@@ -158,7 +158,7 @@
     "category": "inbounds",
     "url": "https://xtls.github.io/en/config/inbounds/trojan.html",
     "source_url": "https://raw.githubusercontent.com/XTLS/Xray-docs-next/main/docs/en/config/inbounds/trojan.md",
-    "fetched_at": "2026-05-04T18:42:51.217Z",
+    "fetched_at": "2026-06-29T11:18:39.262Z",
     "file": "inbounds__inbounds_trojan.md"
   },
   {
@@ -167,7 +167,7 @@
     "category": "inbounds",
     "url": "https://xtls.github.io/en/config/inbounds/tun.html",
     "source_url": "https://raw.githubusercontent.com/XTLS/Xray-docs-next/main/docs/en/config/inbounds/tun.md",
-    "fetched_at": "2026-05-04T18:42:53.756Z",
+    "fetched_at": "2026-06-29T11:18:40.678Z",
     "file": "inbounds__inbounds_tun.md"
   },
   {
@@ -176,7 +176,7 @@
     "category": "inbounds",
     "url": "https://xtls.github.io/en/config/inbounds/tunnel.html",
     "source_url": "https://raw.githubusercontent.com/XTLS/Xray-docs-next/main/docs/en/config/inbounds/tunnel.md",
-    "fetched_at": "2026-05-04T18:42:49.225Z",
+    "fetched_at": "2026-06-29T11:18:38.173Z",
     "file": "inbounds__inbounds_tunnel.md"
   },
   {
@@ -185,7 +185,7 @@
     "category": "inbounds",
     "url": "https://xtls.github.io/en/config/inbounds/vless.html",
     "source_url": "https://raw.githubusercontent.com/XTLS/Xray-docs-next/main/docs/en/config/inbounds/vless.md",
-    "fetched_at": "2026-05-04T18:42:51.696Z",
+    "fetched_at": "2026-06-29T11:18:39.532Z",
     "file": "inbounds__inbounds_vless.md"
   },
   {
@@ -194,7 +194,7 @@
     "category": "inbounds",
     "url": "https://xtls.github.io/en/config/inbounds/vmess.html",
     "source_url": "https://raw.githubusercontent.com/XTLS/Xray-docs-next/main/docs/en/config/inbounds/vmess.md",
-    "fetched_at": "2026-05-04T18:42:52.214Z",
+    "fetched_at": "2026-06-29T11:18:39.795Z",
     "file": "inbounds__inbounds_vmess.md"
   },
   {
@@ -203,7 +203,7 @@
     "category": "inbounds",
     "url": "https://xtls.github.io/en/config/inbounds/wireguard.html",
     "source_url": "https://raw.githubusercontent.com/XTLS/Xray-docs-next/main/docs/en/config/inbounds/wireguard.md",
-    "fetched_at": "2026-05-04T18:42:52.729Z",
+    "fetched_at": "2026-06-29T11:18:40.042Z",
     "file": "inbounds__inbounds_wireguard.md"
   },
   {
@@ -212,7 +212,7 @@
     "category": "basic",
     "url": "https://xtls.github.io/en/config/index.html",
     "source_url": "https://raw.githubusercontent.com/XTLS/Xray-docs-next/main/docs/en/config/index.md",
-    "fetched_at": "2026-05-04T18:42:37.430Z",
+    "fetched_at": "2026-06-29T11:18:31.777Z",
     "file": "basic__index.md"
   },
   {
@@ -221,7 +221,7 @@
     "category": "basic",
     "url": "https://xtls.github.io/en/config/log.html",
     "source_url": "https://raw.githubusercontent.com/XTLS/Xray-docs-next/main/docs/en/config/log.md",
-    "fetched_at": "2026-05-04T18:42:37.922Z",
+    "fetched_at": "2026-06-29T11:18:32.072Z",
     "file": "basic__log.md"
   },
   {
@@ -230,7 +230,7 @@
     "category": "basic",
     "url": "https://xtls.github.io/en/config/metrics.html",
     "source_url": "https://raw.githubusercontent.com/XTLS/Xray-docs-next/main/docs/en/config/metrics.md",
-    "fetched_at": "2026-05-04T18:42:43.602Z",
+    "fetched_at": "2026-06-29T11:18:35.159Z",
     "file": "basic__metrics.md"
   },
   {
@@ -239,7 +239,7 @@
     "category": "basic",
     "url": "https://xtls.github.io/en/config/observatory.html",
     "source_url": "https://raw.githubusercontent.com/XTLS/Xray-docs-next/main/docs/en/config/observatory.md",
-    "fetched_at": "2026-05-04T18:42:44.122Z",
+    "fetched_at": "2026-06-29T11:18:35.426Z",
     "file": "basic__observatory.md"
   },
   {
@@ -248,7 +248,7 @@
     "category": "basic",
     "url": "https://xtls.github.io/en/config/outbound.html",
     "source_url": "https://raw.githubusercontent.com/XTLS/Xray-docs-next/main/docs/en/config/outbound.md",
-    "fetched_at": "2026-05-04T18:42:40.576Z",
+    "fetched_at": "2026-06-29T11:18:33.501Z",
     "file": "basic__outbound.md"
   },
   {
@@ -257,7 +257,7 @@
     "category": "outbounds",
     "url": "https://xtls.github.io/en/config/outbounds/blackhole.html",
     "source_url": "https://raw.githubusercontent.com/XTLS/Xray-docs-next/main/docs/en/config/outbounds/blackhole.md",
-    "fetched_at": "2026-05-04T18:42:54.758Z",
+    "fetched_at": "2026-06-29T11:18:41.195Z",
     "file": "outbounds__outbounds_blackhole.md"
   },
   {
@@ -266,7 +266,7 @@
     "category": "outbounds",
     "url": "https://xtls.github.io/en/config/outbounds/dns.html",
     "source_url": "https://raw.githubusercontent.com/XTLS/Xray-docs-next/main/docs/en/config/outbounds/dns.md",
-    "fetched_at": "2026-05-04T18:42:55.246Z",
+    "fetched_at": "2026-06-29T11:18:41.453Z",
     "file": "outbounds__outbounds_dns.md"
   },
   {
@@ -275,7 +275,7 @@
     "category": "outbounds",
     "url": "https://xtls.github.io/en/config/outbounds/freedom.html",
     "source_url": "https://raw.githubusercontent.com/XTLS/Xray-docs-next/main/docs/en/config/outbounds/freedom.md",
-    "fetched_at": "2026-05-04T18:42:55.761Z",
+    "fetched_at": "2026-06-29T11:18:41.721Z",
     "file": "outbounds__outbounds_freedom.md"
   },
   {
@@ -284,7 +284,7 @@
     "category": "outbounds",
     "url": "https://xtls.github.io/en/config/outbounds/http.html",
     "source_url": "https://raw.githubusercontent.com/XTLS/Xray-docs-next/main/docs/en/config/outbounds/http.md",
-    "fetched_at": "2026-05-04T18:42:56.244Z",
+    "fetched_at": "2026-06-29T11:18:42.090Z",
     "file": "outbounds__outbounds_http.md"
   },
   {
@@ -293,7 +293,7 @@
     "category": "outbounds",
     "url": "https://xtls.github.io/en/config/outbounds/hysteria.html",
     "source_url": "https://raw.githubusercontent.com/XTLS/Xray-docs-next/main/docs/en/config/outbounds/hysteria.md",
-    "fetched_at": "2026-05-04T18:43:00.303Z",
+    "fetched_at": "2026-06-29T11:18:44.226Z",
     "file": "outbounds__outbounds_hysteria.md"
   },
   {
@@ -302,7 +302,7 @@
     "category": "outbounds",
     "url": "https://xtls.github.io/en/config/outbounds/index.html",
     "source_url": "https://raw.githubusercontent.com/XTLS/Xray-docs-next/main/docs/en/config/outbounds/index.md",
-    "fetched_at": "2026-05-04T18:42:54.250Z",
+    "fetched_at": "2026-06-29T11:18:40.941Z",
     "file": "outbounds__outbounds_index.md"
   },
   {
@@ -311,7 +311,7 @@
     "category": "outbounds",
     "url": "https://xtls.github.io/en/config/outbounds/loopback.html",
     "source_url": "https://raw.githubusercontent.com/XTLS/Xray-docs-next/main/docs/en/config/outbounds/loopback.md",
-    "fetched_at": "2026-05-04T18:42:56.760Z",
+    "fetched_at": "2026-06-29T11:18:42.354Z",
     "file": "outbounds__outbounds_loopback.md"
   },
   {
@@ -320,7 +320,7 @@
     "category": "outbounds",
     "url": "https://xtls.github.io/en/config/outbounds/shadowsocks.html",
     "source_url": "https://raw.githubusercontent.com/XTLS/Xray-docs-next/main/docs/en/config/outbounds/shadowsocks.md",
-    "fetched_at": "2026-05-04T18:42:57.244Z",
+    "fetched_at": "2026-06-29T11:18:42.612Z",
     "file": "outbounds__outbounds_shadowsocks.md"
   },
   {
@@ -329,7 +329,7 @@
     "category": "outbounds",
     "url": "https://xtls.github.io/en/config/outbounds/socks.html",
     "source_url": "https://raw.githubusercontent.com/XTLS/Xray-docs-next/main/docs/en/config/outbounds/socks.md",
-    "fetched_at": "2026-05-04T18:42:57.742Z",
+    "fetched_at": "2026-06-29T11:18:42.890Z",
     "file": "outbounds__outbounds_socks.md"
   },
   {
@@ -338,7 +338,7 @@
     "category": "outbounds",
     "url": "https://xtls.github.io/en/config/outbounds/trojan.html",
     "source_url": "https://raw.githubusercontent.com/XTLS/Xray-docs-next/main/docs/en/config/outbounds/trojan.md",
-    "fetched_at": "2026-05-04T18:42:58.256Z",
+    "fetched_at": "2026-06-29T11:18:43.132Z",
     "file": "outbounds__outbounds_trojan.md"
   },
   {
@@ -347,7 +347,7 @@
     "category": "outbounds",
     "url": "https://xtls.github.io/en/config/outbounds/vless.html",
     "source_url": "https://raw.githubusercontent.com/XTLS/Xray-docs-next/main/docs/en/config/outbounds/vless.md",
-    "fetched_at": "2026-05-04T18:42:58.784Z",
+    "fetched_at": "2026-06-29T11:18:43.394Z",
     "file": "outbounds__outbounds_vless.md"
   },
   {
@@ -356,7 +356,7 @@
     "category": "outbounds",
     "url": "https://xtls.github.io/en/config/outbounds/vmess.html",
     "source_url": "https://raw.githubusercontent.com/XTLS/Xray-docs-next/main/docs/en/config/outbounds/vmess.md",
-    "fetched_at": "2026-05-04T18:42:59.291Z",
+    "fetched_at": "2026-06-29T11:18:43.667Z",
     "file": "outbounds__outbounds_vmess.md"
   },
   {
@@ -365,7 +365,7 @@
     "category": "outbounds",
     "url": "https://xtls.github.io/en/config/outbounds/wireguard.html",
     "source_url": "https://raw.githubusercontent.com/XTLS/Xray-docs-next/main/docs/en/config/outbounds/wireguard.md",
-    "fetched_at": "2026-05-04T18:42:59.805Z",
+    "fetched_at": "2026-06-29T11:18:43.916Z",
     "file": "outbounds__outbounds_wireguard.md"
   },
   {
@@ -374,16 +374,16 @@
     "category": "basic",
     "url": "https://xtls.github.io/en/config/policy.html",
     "source_url": "https://raw.githubusercontent.com/XTLS/Xray-docs-next/main/docs/en/config/policy.md",
-    "fetched_at": "2026-05-04T18:42:41.083Z",
+    "fetched_at": "2026-06-29T11:18:33.762Z",
     "file": "basic__policy.md"
   },
   {
     "slug": "reverse",
-    "title": "Reverse Proxy",
+    "title": "Legacy Reverse Proxy",
     "category": "basic",
     "url": "https://xtls.github.io/en/config/reverse.html",
     "source_url": "https://raw.githubusercontent.com/XTLS/Xray-docs-next/main/docs/en/config/reverse.md",
-    "fetched_at": "2026-05-04T18:42:41.609Z",
+    "fetched_at": "2026-06-29T11:18:34.024Z",
     "file": "basic__reverse.md"
   },
   {
@@ -392,7 +392,7 @@
     "category": "basic",
     "url": "https://xtls.github.io/en/config/routing.html",
     "source_url": "https://raw.githubusercontent.com/XTLS/Xray-docs-next/main/docs/en/config/routing.md",
-    "fetched_at": "2026-05-04T18:42:42.094Z",
+    "fetched_at": "2026-06-29T11:18:34.340Z",
     "file": "basic__routing.md"
   },
   {
@@ -401,16 +401,16 @@
     "category": "basic",
     "url": "https://xtls.github.io/en/config/stats.html",
     "source_url": "https://raw.githubusercontent.com/XTLS/Xray-docs-next/main/docs/en/config/stats.md",
-    "fetched_at": "2026-05-04T18:42:42.586Z",
+    "fetched_at": "2026-06-29T11:18:34.655Z",
     "file": "basic__stats.md"
   },
   {
     "slug": "transport",
-    "title": "Transport (uTLS, REALITY)",
+    "title": "Transport Configuration",
     "category": "basic",
     "url": "https://xtls.github.io/en/config/transport.html",
     "source_url": "https://raw.githubusercontent.com/XTLS/Xray-docs-next/main/docs/en/config/transport.md",
-    "fetched_at": "2026-05-04T18:42:43.082Z",
+    "fetched_at": "2026-06-29T11:18:34.902Z",
     "file": "basic__transport.md"
   },
   {
@@ -419,7 +419,7 @@
     "category": "transports",
     "url": "https://xtls.github.io/en/config/transports/grpc.html",
     "source_url": "https://raw.githubusercontent.com/XTLS/Xray-docs-next/main/docs/en/config/transports/grpc.md",
-    "fetched_at": "2026-05-04T18:43:03.782Z",
+    "fetched_at": "2026-06-29T11:18:46.117Z",
     "file": "transports__transports_grpc.md"
   },
   {
@@ -428,7 +428,7 @@
     "category": "transports",
     "url": "https://xtls.github.io/en/config/transports/h2.html",
     "source_url": "https://raw.githubusercontent.com/XTLS/Xray-docs-next/main/docs/en/config/transports/h2.md",
-    "fetched_at": "2026-05-04T18:43:05.840Z",
+    "fetched_at": "2026-06-29T11:18:47.182Z",
     "file": "transports__transports_h2.md"
   },
   {
@@ -437,7 +437,7 @@
     "category": "transports",
     "url": "https://xtls.github.io/en/config/transports/http.html",
     "source_url": "https://raw.githubusercontent.com/XTLS/Xray-docs-next/main/docs/en/config/transports/http.md",
-    "fetched_at": "2026-05-04T18:43:06.340Z",
+    "fetched_at": "2026-06-29T11:18:47.437Z",
     "file": "transports__transports_http.md"
   },
   {
@@ -446,7 +446,7 @@
     "category": "transports",
     "url": "https://xtls.github.io/en/config/transports/httpupgrade.html",
     "source_url": "https://raw.githubusercontent.com/XTLS/Xray-docs-next/main/docs/en/config/transports/httpupgrade.md",
-    "fetched_at": "2026-05-04T18:43:04.806Z",
+    "fetched_at": "2026-06-29T11:18:46.642Z",
     "file": "transports__transports_httpupgrade.md"
   },
   {
@@ -455,16 +455,16 @@
     "category": "transports",
     "url": "https://xtls.github.io/en/config/transports/hysteria.html",
     "source_url": "https://raw.githubusercontent.com/XTLS/Xray-docs-next/main/docs/en/config/transports/hysteria.md",
-    "fetched_at": "2026-05-04T18:43:05.303Z",
+    "fetched_at": "2026-06-29T11:18:46.907Z",
     "file": "transports__transports_hysteria.md"
   },
   {
     "slug": "transports/index",
-    "title": "Xray Transport Layer",
+    "title": "Xray Transport Configuration",
     "category": "transports",
     "url": "https://xtls.github.io/en/config/transports/index.html",
     "source_url": "https://raw.githubusercontent.com/XTLS/Xray-docs-next/main/docs/en/config/transports/index.md",
-    "fetched_at": "2026-05-04T18:43:00.806Z",
+    "fetched_at": "2026-06-29T11:18:44.527Z",
     "file": "transports__transports_index.md"
   },
   {
@@ -473,7 +473,7 @@
     "category": "transports",
     "url": "https://xtls.github.io/en/config/transports/mkcp.html",
     "source_url": "https://raw.githubusercontent.com/XTLS/Xray-docs-next/main/docs/en/config/transports/mkcp.md",
-    "fetched_at": "2026-05-04T18:43:03.280Z",
+    "fetched_at": "2026-06-29T11:18:45.855Z",
     "file": "transports__transports_mkcp.md"
   },
   {
@@ -482,7 +482,7 @@
     "category": "transports",
     "url": "https://xtls.github.io/en/config/transports/quic.html",
     "source_url": "https://raw.githubusercontent.com/XTLS/Xray-docs-next/main/docs/en/config/transports/quic.md",
-    "fetched_at": "2026-05-04T18:43:06.851Z",
+    "fetched_at": "2026-06-29T11:18:47.704Z",
     "file": "transports__transports_quic.md"
   },
   {
@@ -491,7 +491,7 @@
     "category": "transports",
     "url": "https://xtls.github.io/en/config/transports/raw.html",
     "source_url": "https://raw.githubusercontent.com/XTLS/Xray-docs-next/main/docs/en/config/transports/raw.md",
-    "fetched_at": "2026-05-04T18:43:01.273Z",
+    "fetched_at": "2026-06-29T11:18:44.799Z",
     "file": "transports__transports_raw.md"
   },
   {
@@ -500,7 +500,7 @@
     "category": "transports",
     "url": "https://xtls.github.io/en/config/transports/splithttp.html",
     "source_url": "https://raw.githubusercontent.com/XTLS/Xray-docs-next/main/docs/en/config/transports/splithttp.md",
-    "fetched_at": "2026-05-04T18:43:02.788Z",
+    "fetched_at": "2026-06-29T11:18:45.595Z",
     "file": "transports__transports_splithttp.md"
   },
   {
@@ -509,7 +509,7 @@
     "category": "transports",
     "url": "https://xtls.github.io/en/config/transports/tcp.html",
     "source_url": "https://raw.githubusercontent.com/XTLS/Xray-docs-next/main/docs/en/config/transports/tcp.md",
-    "fetched_at": "2026-05-04T18:43:01.793Z",
+    "fetched_at": "2026-06-29T11:18:45.067Z",
     "file": "transports__transports_tcp.md"
   },
   {
@@ -518,7 +518,7 @@
     "category": "transports",
     "url": "https://xtls.github.io/en/config/transports/websocket.html",
     "source_url": "https://raw.githubusercontent.com/XTLS/Xray-docs-next/main/docs/en/config/transports/websocket.md",
-    "fetched_at": "2026-05-04T18:43:04.294Z",
+    "fetched_at": "2026-06-29T11:18:46.379Z",
     "file": "transports__transports_websocket.md"
   },
   {
@@ -527,7 +527,7 @@
     "category": "transports",
     "url": "https://xtls.github.io/en/config/transports/xhttp.html",
     "source_url": "https://raw.githubusercontent.com/XTLS/Xray-docs-next/main/docs/en/config/transports/xhttp.md",
-    "fetched_at": "2026-05-04T18:43:02.279Z",
+    "fetched_at": "2026-06-29T11:18:45.329Z",
     "file": "transports__transports_xhttp.md"
   }
 ]

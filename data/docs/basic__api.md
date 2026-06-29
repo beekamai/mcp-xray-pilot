@@ -4,7 +4,7 @@ source_url: https://raw.githubusercontent.com/XTLS/Xray-docs-next/main/docs/en/c
 title: API Interface
 category: basic
 slug: api
-fetched_at: 2026-05-04T18:42:38.451Z
+fetched_at: 2026-06-29T11:18:32.380Z
 ---
 # API Interface
 
@@ -56,42 +56,44 @@ The list of enabled APIs. See [API List](#supported-api-list) for available valu
 You can add an `api` inbound in the `inbounds` configuration:
 
 ```json
-"inbounds": [
-  {
-    "listen": "127.0.0.1",
-    "port": 10085,
-    "protocol": "dokodemo-door",
-    "settings": {
-      "address": "127.0.0.1"
-    },
-    "tag": "api"
-  }
-]
+{
+  "inbounds": [
+    {
+      "listen": "127.0.0.1",
+      "port": 10085,
+      "protocol": "tunnel",
+      "settings": {
+        "rewriteAddress": "127.0.0.1"
+      },
+      "tag": "api"
+    }
+  ]
+}
 ```
 
 Add a routing rule for the `api` inbound in the `routing` configuration:
 
 ```json
-"routing": {
-  "rules": [
-    {
-      "inboundTag": [
-        "api"
-      ],
-      "outboundTag": "api"
-    }
-  ]
+{
+  "routing": {
+    "rules": [
+      {
+        "inboundTag": ["api"],
+        "outboundTag": "api"
+      }
+    ]
+  }
 }
 ```
 
 Add `api` in the basic configuration:
 
 ```json
-"api": {
-  "tag": "api",
-  "services": [
-    "StatsService"
-  ]
+{
+  "api": {
+    "tag": "api",
+    "services": ["StatsService"]
+  }
 }
 ```
 
@@ -146,3 +148,4 @@ xray.app.stats.command.StatsService
 ## API Call Examples
 
 [Xray-API-documents](https://github.com/XTLS/Xray-API-documents) @crossfw
+

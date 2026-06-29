@@ -4,7 +4,7 @@ source_url: https://raw.githubusercontent.com/XTLS/Xray-docs-next/main/docs/en/c
 title: Trojan
 category: inbounds
 slug: inbounds/trojan
-fetched_at: 2026-05-04T18:42:51.217Z
+fetched_at: 2026-06-29T11:18:39.262Z
 ---
 # Trojan
 
@@ -16,28 +16,39 @@ Trojan is designed to work over correctly configured encrypted TLS tunnels.
 
 ## InboundConfigurationObject
 
+`InboundConfigurationObject` corresponds to the `settings` item in [`InboundObject`](../inbound.md).
+
 ```json
 {
-  "clients": [
+  "inbounds": [
     {
-      "password": "password",
-      "email": "love@xray.com",
-      "level": 0
-    }
-  ],
-  "fallbacks": [
-    {
-      "dest": 80
+      // ...
+      "protocol": "trojan",
+      // [!code focus:14]
+      "settings": {
+        "users": [
+          {
+            "password": "password",
+            "email": "love@xray.com",
+            "level": 0
+          }
+        ],
+        "fallbacks": [
+          {
+            "dest": 80
+          }
+        ]
+      }
     }
   ]
 }
 ```
 
-> `clients`: \[ [ClientObject](#clientobject) \]
+> `users`: \[ [UserObject](#userobject) \]
 
 An array representing a group of users accepted by the server.
 
-Each item is a [ClientObject](#clientobject).
+Each item is a [UserObject](#userobject).
 
 > `fallbacks`: \[ [FallbackObject](../features/fallback.md) \]
 
@@ -49,7 +60,7 @@ Xray's Trojan has complete support for fallbacks, and the configuration method i
 The conditions for triggering fallback are also similar to VLESS: the length of the first packet < 58, OR the 57th byte is not `\r` (because Trojan has no protocol version), OR authentication fails.
 :::
 
-### ClientObject
+### UserObject
 
 ```json
 {
@@ -68,7 +79,7 @@ Required, any string.
 Email address, optional, used to identify the user.
 
 ::: danger
-If there are multiple ClientObjects, please note that emails must not be duplicated.
+If there are multiple UserObjects, please note that emails must not be duplicated.
 :::
 
 > `level`: number
@@ -76,3 +87,4 @@ If there are multiple ClientObjects, please note that emails must not be duplica
 User level. Connections will use the [Local Policy](../policy.md#levelpolicyobject) corresponding to this user level.
 
 The value of `userLevel` corresponds to the value of `level` in [policy](../policy.md#policyobject). If not specified, it defaults to 0.
+

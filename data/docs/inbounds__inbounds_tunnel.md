@@ -4,7 +4,7 @@ source_url: https://raw.githubusercontent.com/XTLS/Xray-docs-next/main/docs/en/c
 title: Tunnel (dokodemo-door)
 category: inbounds
 slug: inbounds/tunnel
-fetched_at: 2026-05-04T18:42:49.225Z
+fetched_at: 2026-06-29T11:18:38.173Z
 ---
 # Tunnel (dokodemo-door)
 
@@ -12,42 +12,53 @@ Tunnel, formerly known as dokodemo-door (Arbitrary Door), can listen on multiple
 
 ## InboundConfigurationObject
 
+`InboundConfigurationObject` corresponds to the `settings` item in [`InboundObject`](../inbound.md).
+
 ```json
 {
-  "address": "8.8.8.8",
-  "port": 53,
-  "portMap": {
-    "5555": "1.1.1.1:7777",
-    "5556": ":8888", // overrides port only
-    "5557": "example.com:" // overrides address only
-  },
-  "network": "tcp",
-  "followRedirect": false,
-  "userLevel": 0
+  "inbounds": [
+    {
+      // ...
+      "protocol": "tunnel",
+      // [!code focus:12]
+      "settings": {
+        "allowedNetwork": "tcp",
+        "rewriteAddress": "8.8.8.8",
+        "rewritePort": 53,
+        "portMap": {
+          "5555": "1.1.1.1:7777",
+          "5556": ":8888", // overrides port only
+          "5557": "example.com:" // overrides address only
+        },
+        "followRedirect": false,
+        "userLevel": 0
+      }
+    }
+  ]
 }
 ```
 
-> `address`: address
+> `allowedNetwork`: "tcp" | "udp" | "tcp,udp"
+
+Accepted network protocol types. For example, when specified as `"tcp"`, only TCP traffic will be received. Default value is `"tcp"`.
+
+> `rewriteAddress`: address
 
 Forward traffic to this address. It can be an IP address, like `"1.2.3.4"`, or a domain name, like `"xray.com"`. String type, defaults to `"localhost"`.
 
-> `port`: number
+> `rewritePort`: number
 
 Forward traffic to the specified port of the target address. Range \[0, 65535\], numeric type. If omitted or 0, it defaults to the listening port.
 
 > `portMap`: map[string]string
 
-A map mapping local ports to required remote addresses/ports (if the inbound listens on multiple ports). If the local port is not included in this map, it is handled according to the `address`/`port` settings.
-
-> `network`: "tcp" | "udp" | "tcp,udp"
-
-Accepted network protocol types. For example, when specified as `"tcp"`, only TCP traffic will be received. Default value is `"tcp"`.
+A map mapping local ports to required remote addresses/ports (if the inbound listens on multiple ports). If the local port is not included in this map, it is handled according to the `rewriteAddress`/`rewritePort` settings.
 
 > `followRedirect`: true | false
 
-When set to `true`, dokodemo-door will recognize data forwarded by iptables and forward it to the corresponding target address.
+When set to `true`, tunnel will recognize data forwarded by iptables and forward it to the corresponding target address.
 
-Please refer to the `tproxy` setting in [Transport Configuration](../transport.md#sockoptobject).
+Please refer to the `tproxy` setting in [Sockopt](../transports/sockopt.md#sockoptobject).
 
 > `userLevel`: number
 
@@ -59,7 +70,7 @@ The value of `userLevel` corresponds to the value of `level` in [policy](../poli
 
 The "Arbitrary Door" has two main uses: one is for transparent proxy (see below), and the other is for mapping a port.
 
-Sometimes some services do not support forward proxies like Socks5, and using Tun or Tproxy is overkill. If these services only communicate with a single IP and port (e.g., iperf, Minecraft server, Wireguard endpoint), you can use dokodemo-door.
+Sometimes some services do not support forward proxies like Socks5, and using Tun or Tproxy is overkill. If these services only communicate with a single IP and port (e.g., iperf, Minecraft server, Wireguard endpoint), you can use `tunnel`.
 
 For example, the following Config (assuming the default outbound is a valid proxy):
 
@@ -69,9 +80,9 @@ For example, the following Config (assuming the default outbound is a valid prox
   "port": 25565,
   "protocol": "tunnel",
   "settings": {
-    "address": "mc.hypixel.net",
-    "port": 25565,
-    "network": "tcp",
+    "allowedNetwork": "tcp",
+    "rewriteAddress": "mc.hypixel.net",
+    "rewritePort": 25565,
     "followRedirect": false,
     "userLevel": 0
   },
@@ -84,3 +95,4 @@ In this case, the core will listen on 127.0.0.1:25565 and forward it to mc.hypix
 ## Transparent Proxy Configuration Example
 
 For this section, please refer to [Transparent Proxy (TProxy) Configuration Tutorial](../../document/level-2/tproxy).
+

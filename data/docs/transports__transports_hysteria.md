@@ -4,7 +4,7 @@ source_url: https://raw.githubusercontent.com/XTLS/Xray-docs-next/main/docs/en/c
 title: Hysteria
 category: transports
 slug: transports/hysteria
-fetched_at: 2026-05-04T18:43:05.303Z
+fetched_at: 2026-06-29T11:18:46.907Z
 ---
 # Hysteria
 
@@ -12,28 +12,37 @@ Xray implementation of the underlying QUIC transport for Hysteria2, typically us
 
 ## HysteriaObject
 
-`HysteriaObject` corresponds to the `hysteriaSettings` item in the transport configuration.
+`HysteriaObject` corresponds to the `hysteriaSettings` item in [`StreamSettingsObject`](../transport.md#streamsettingsobject).
 
 ```json
 {
-  "version": 2,
-  "auth": "password",
-  "udpIdleTimeout": 60,
-  "masquerade": {
-    "type": "",
-
-    "dir": "",
-
-    "url": "",
-    "rewriteHost": false,
-    "insecure": false,
-
-    "content": "",
-    "headers": {
-      "key": "value"
-    },
-    "statusCode": 0
-  }
+  // outbound example; also applies to inbound
+  "outbounds": [
+    {
+      // ...
+      "streamSettings": {
+        "network": "hysteria",
+        // [!code focus:17]
+        "hysteriaSettings": {
+          "version": 2,
+          "auth": "password",
+          "udpIdleTimeout": 60,
+          "masquerade": {
+            "type": "",
+            "dir": "",
+            "url": "",
+            "rewriteHost": false,
+            "insecure": false,
+            "content": "",
+            "headers": {
+              "key": "value"
+            },
+            "statusCode": 0
+          }
+        }
+      }
+    }
+  ]
 }
 ```
 
@@ -45,7 +54,7 @@ Hysteria version, must be 2.
 
 Hysteria authentication password. Must be consistent between the server and the client.
 
-When used with `hysteria inbound`, it will be overridden by `clients` (if it exists).
+When used with `hysteria inbound`, it will be overridden by `users` (if it exists).
 
 > `udpIdleTimeout`: number
 
@@ -108,3 +117,4 @@ Configuration items when type is string.
 > `statusCode`: int
 
 Configuration items when type is string.
+

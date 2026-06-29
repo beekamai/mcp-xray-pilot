@@ -4,7 +4,7 @@ source_url: https://raw.githubusercontent.com/XTLS/Xray-docs-next/main/docs/en/c
 title: Socks
 category: outbounds
 slug: outbounds/socks
-fetched_at: 2026-05-04T18:42:57.742Z
+fetched_at: 2026-06-29T11:18:42.890Z
 ---
 # Socks
 
@@ -16,14 +16,25 @@ Standard Socks protocol implementation, compatible with Socks 5.
 
 ## OutboundConfigurationObject
 
+`OutboundConfigurationObject` corresponds to the `settings` item in [`OutboundObject`](../outbound.md).
+
 ```json
 {
-  "address": "127.0.0.1",
-  "port": 1234,
-  "user": "test user",
-  "pass": "test pass",
-  "level": 0,
-  "email": "love@xray.com"
+  "outbounds": [
+    {
+      // ...
+      "protocol": "socks",
+      // [!code focus:8]
+      "settings": {
+        "address": "127.0.0.1",
+        "port": 1234,
+        "user": "test user",
+        "pass": "test pass",
+        "level": 0,
+        "email": "love@xray.com"
+      }
+    }
+  ]
 }
 ```
 
@@ -56,3 +67,4 @@ The value of `userLevel` corresponds to the value of `level` in [policy](../poli
 > `email`: string
 
 Email address, used to identify the user. Optional if the remote server requires authentication; otherwise, do not include this item.
+

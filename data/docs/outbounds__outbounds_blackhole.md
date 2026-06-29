@@ -4,7 +4,7 @@ source_url: https://raw.githubusercontent.com/XTLS/Xray-docs-next/main/docs/en/c
 title: Blackhole
 category: outbounds
 slug: outbounds/blackhole
-fetched_at: 2026-05-04T18:42:54.758Z
+fetched_at: 2026-06-29T11:18:41.195Z
 ---
 # Blackhole
 
@@ -12,11 +12,22 @@ Blackhole is an outbound data protocol that blocks all outbound data. When used 
 
 ## OutboundConfigurationObject
 
+`OutboundConfigurationObject` corresponds to the `settings` item in [`OutboundObject`](../outbound.md).
+
 ```json
 {
-  "response": {
-    "type": "none"
-  }
+  "outbounds": [
+    {
+      // ...
+      "protocol": "blackhole",
+      // [!code focus:5]
+      "settings": {
+        "response": {
+          "type": "none"
+        }
+      }
+    }
+  ]
 }
 ```
 
@@ -40,3 +51,4 @@ If this item is not specified, Blackhole will close the connection immediately.
 When `type` is `"none"` (default value), Blackhole will close the connection immediately.
 
 When `type` is `"http"`, Blackhole will send back a simple HTTP 403 response packet, then close the connection.
+

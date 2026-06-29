@@ -4,62 +4,48 @@ source_url: https://raw.githubusercontent.com/XTLS/Xray-docs-next/main/docs/en/c
 title: Loopback
 category: outbounds
 slug: outbounds/loopback
-fetched_at: 2026-05-04T18:42:56.760Z
+fetched_at: 2026-06-29T11:18:42.354Z
 ---
 # Loopback
 
-Loopback is an outbound data protocol. Its function is to re-inject data sent through this outbound back into the routing inbound, allowing the data to be processed by the routing system again without leaving Xray-core.
+Loopback is a loopback outbound used to send traffic back to routing for further processing without leaving the core.
+
+::: tip Uses
+
+- In places where only an outbound can be specified and `balancerTag` cannot be written directly, Loopback can be used to indirectly use a balancer.<br>
+  For example, `proxySettings` and `dialerProxy` in chained proxies, and `fallbackTag` in load balancing.
+- After traffic has already been routed once, it can be further subdivided based on more conditions.<br>
+  For example, TCP traffic and UDP traffic routed by the same set of routing rules can be sent to different outbounds.
+
+:::
 
 ## OutboundConfigurationObject
 
-```json
-{
-  "inboundTag": "TagUseAsInbound"
-}
-```
-
-> `inboundTag`: string
-
-The inbound protocol identifier used for re-routing.
-
-This identifier can be used for `inboundTag` in routing rules, indicating that data from this outbound can be processed again by the corresponding routing rules.
-
-### How to use?
-
-If you need to perform finer-grained splitting on traffic that has already been split by routing rules—for example, if TCP traffic and UDP traffic split by the same group of routing rules need to go through different outbounds—you can use the `loopback` outbound to achieve this.
+`OutboundConfigurationObject` corresponds to the `settings` item in [`OutboundObject`](../outbound.md).
 
 ```json
 {
   "outbounds": [
     {
+      // ...
       "protocol": "loopback",
-      "tag": "need-to-split",
+      // [!code focus:4]
       "settings": {
-        "inboundTag": "traffic-input" // This tag is used for the inboundTag of RuleObject below
+        "inboundTag": "TagUseAsInbound",
+        "sniffing": {}
       }
-    },
-    {
-      "tag": "tcp-output"
-      // settings like protocol, settings, streamSettings
-    },
-    {
-      "tag": "udp-output"
-      // settings like protocol, settings, streamSettings
     }
-  ],
-  "routing": {
-    "rules": [
-      {
-        "inboundTag": ["traffic-input"], // tag set in loopback
-        "network": "tcp",
-        "outboundTag": "tcp-output"
-      },
-      {
-        "inboundTag": ["traffic-input"], // tag set in loopback
-        "network": "udp",
-        "outboundTag": "udp-output"
-      }
-    ]
-  }
+  ]
 }
 ```
+
+> `inboundTag`: string
+
+The inbound tag used when re-entering routing.
+
+This tag can be used as `inboundTag` in routing, indicating that data from this outbound will re-enter routing with this tag and be processed again by the corresponding rules.
+
+> `sniffing`: [SniffingObject](../inbound.md#sniffingobject)
+
+Traffic sniffing. The specific configuration is the same as that of [Inbound](../inbound.md#sniffingobject). Disabled by default.
+

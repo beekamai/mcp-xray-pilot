@@ -4,7 +4,7 @@ source_url: https://raw.githubusercontent.com/XTLS/Xray-docs-next/main/docs/en/c
 title: Statistics
 category: basic
 slug: stats
-fetched_at: 2026-05-04T18:42:42.586Z
+fetched_at: 2026-06-29T11:18:34.655Z
 ---
 # Statistics
 
@@ -59,3 +59,4 @@ If the corresponding user does not specify an Email, statistics will not be enab
   - `outbound>>>[tag]>>>traffic>>>downlink`
 
     Downlink traffic for a specific outbound, in bytes.
+

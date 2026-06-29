@@ -4,7 +4,7 @@ source_url: https://raw.githubusercontent.com/XTLS/Xray-docs-next/main/docs/en/c
 title: Browser Dialer
 category: features
 slug: features/browser_dialer
-fetched_at: 2026-05-04T18:42:46.683Z
+fetched_at: 2026-06-29T11:18:36.779Z
 ---
 # Browser Dialer
 
@@ -59,3 +59,4 @@ Based on browser requirements, the following adjustments were made to the early 
 [XHTTP](https://github.com/XTLS/Xray-core/discussions/4113) itself supports QUIC. If you want to use the browser's own QUIC network stack, Chrome users can configure it in `chrome://flags`. Other browsers also have relevant options.
 
 In principle, `tlsSettings` items will be ignored, and the HTTP version used will be determined entirely by the browser.
+

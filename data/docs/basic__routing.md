@@ -4,7 +4,7 @@ source_url: https://raw.githubusercontent.com/XTLS/Xray-docs-next/main/docs/en/c
 title: Routing
 category: basic
 slug: routing
-fetched_at: 2026-05-04T18:42:42.094Z
+fetched_at: 2026-06-29T11:18:34.340Z
 ---
 # Routing
 
@@ -144,7 +144,7 @@ Optional values are "tcp", "udp", or "tcp,udp". The rule takes effect when the c
 
 Since the core obviously only supports TCP and UDP layer 4 protocols, a routing rule containing only `"network": "tcp,udp"` can be used as a "catch-all" to match any traffic. An example usage is placing it at the very end of all routing rules to specify the default outbound when no other rules match (otherwise the core defaults to the first outbound).
 
-Of course, other ways that obviously match any traffic, such as specifying ports 1-65535 or IPs 0.0.0.0/0 + ::/0, have a similar effect.
+Of course, other ways that obviously match any traffic, such as specifying ports 1-65535, have a similar effect.
 
 > `sourceIP`: \[string\]
 
@@ -212,6 +212,8 @@ Example:
 > `process`: \[string\]
 
 If the connection originates from the local machine, match its process. If not from local, it is directly regarded as a match failure. Only supports Windows and Linux.
+
+In particular, on Android the client app needs to call `github.com/xtls/xray-core/common/net.RegisterAndroidProcessFinder()` to inject the finder provided by the Android API. This hook can customize the string returned to the core, enabling features such as app matching.
 
 This option is an array, where each item has three matching modes.
 
@@ -306,6 +308,8 @@ HTTP request headers.
 
 Load balancer configuration. When a load balancer takes effect, it selects the most suitable outbound from the specified outbounds according to the configuration and forwards the traffic.
 
+Some features require information from either of the two observatories — [observatory](./observatory.md#observatoryobject) or [burstObservatory](./observatory.md#burstobservatoryobject); see the specific descriptions.
+
 ```json
 {
   "tag": "balancer",
@@ -329,8 +333,6 @@ Generally matches multiple outbounds to distribute load among them.
 
 If all outbounds cannot be connected based on observation results, the outbound specified by this configuration item is used.
 
-Note: Requires adding [observatory](./observatory.md#observatoryobject) or [burstObservatory](./observatory.md#burstobservatoryobject) configuration items.
-
 > `strategy`: [StrategyObject](#strategyobject)
 
 #### StrategyObject
@@ -346,12 +348,13 @@ Note: Requires adding [observatory](./observatory.md#observatoryobject) or [burs
 
 - `random`: Default value. Randomly selects a matched outbound proxy.
 - `roundRobin`: Selects matched outbound proxies in order.
-- `leastPing`: Selects the matched outbound proxy with the lowest latency based on observation results. Requires [observatory](./observatory.md#observatoryobject) or [burstObservatory](./observatory.md#burstobservatoryobject).
-- `leastLoad`: Selects the most stable outbound proxy based on observation results. Requires [observatory](./observatory.md#observatoryobject) or [burstObservatory](./observatory.md#burstobservatoryobject).
 
-::: tip
-Regardless of the mode, if all nodes corresponding to its `selector` have `observatory` or `burstObservatory` configured, healthy nodes can be filtered out. If no healthy nodes are available, it attempts `fallbackTag`.
-:::
+The two strategies above can optionally use an observatory. If `fallbackTag` is set and an observatory is present, outbounds observed as unavailable will be automatically excluded (those without observation data are assumed to be alive).
+
+- `leastPing`: Selects the matched outbound proxy with the lowest latency based on observation results.
+- `leastLoad`: Selects the most stable outbound proxy based on observation results.
+
+The two strategies above must be used together with an observatory, and nodes not covered by the observatory will be directly excluded. If all are unavailable and `fallbackTag` is not set, the default outbound will be selected.
 
 > `settings`: [StrategySettingsObject](#strategysettingsobject)
 
@@ -385,7 +388,7 @@ The maximum acceptable RTT duration for speed tests.
 
 > `tolerance`: float number
 
-The maximum acceptable failure rate for speed tests. For example, 0.01 means accepting a 1% failure rate. (Seemingly unimplemented).
+The maximum acceptable failure rate for speed tests. For example, 0.01 means accepting a 1% failure rate.
 
 > `baselines`: \[ string \]
 
@@ -410,45 +413,43 @@ Weight value. The larger the value, the less likely the corresponding node is to
 ### Load Balancer Configuration Example
 
 ```json
-    "routing": {
-        "rules": [
-            {
-                "inboundTag": [
-                    "in"
-                ],
-                "balancerTag": "round"
-            }
-        ],
-        "balancers" : [
-            {
-                "selector": [
-                    "out"
-                ],
-                "strategy": {
-                    "type":"roundRobin"
-                },
-                "tag": "round"
-            }
-        ]
-    },
-
-    "inbounds": [
-        {
-            // Inbound config
-            "tag": "in"
-        }
+{
+  "routing": {
+    "rules": [
+      {
+        "inboundTag": ["in"],
+        "balancerTag": "round"
+      }
     ],
-
-    "outbounds": [
-        {
-            // Outbound config
-            "tag": "out1"
+    "balancers": [
+      {
+        "selector": ["out"],
+        "strategy": {
+          "type": "roundRobin"
         },
-        {
-            // Outbound config
-            "tag": "out2"
-        }
+        "tag": "round"
+      }
     ]
+  },
+
+  "inbounds": [
+    {
+      // Inbound config
+      "tag": "in"
+    }
+  ],
+
+  "outbounds": [
+    {
+      // Outbound config
+      "tag": "out1"
+    },
+    {
+      // Outbound config
+      "tag": "out2"
+    }
+  ]
+}
 ```
 
 ### Predefined Domain List
@@ -472,3 +473,4 @@ Common domains include:
 - `tld-!cn`: Contains top-level domains not used in mainland China, such as domains ending in `.tw` (Taiwan), `.jp` (Japan), `.sg` (Singapore), `.us` (USA), `.ca` (Canada), etc.
 
 You can also view the complete domain list here: [Domain list community](https://github.com/v2fly/domain-list-community).
+

@@ -4,7 +4,7 @@ source_url: https://raw.githubusercontent.com/XTLS/Xray-docs-next/main/docs/en/c
 title: Geodata Files
 category: basic
 slug: geodata
-fetched_at: 2026-05-04T18:42:44.635Z
+fetched_at: 2026-06-29T11:18:35.723Z
 ---
 # Geodata Files
 
@@ -14,14 +14,18 @@ Use with caution on low-memory devices.
 
 ## GeodataObject
 
+`GeodataObject` corresponds to the `geodata` item in the configuration file.
+
 ```json
 {
-  "cron": "0 4 * * *",
-  "outbound": "proxy",
-  "assets": [
-    { "url": "https://example.com/geoip.dat", "file": "geoip.dat" },
-    { "url": "https://example.com/geosite.dat", "file": "geosite.dat" }
-  ]
+  "geodata": {
+    "cron": "0 4 * * *",
+    "outbound": "proxy",
+    "assets": [
+      { "url": "https://example.com/geoip.dat", "file": "geoip.dat" },
+      { "url": "https://example.com/geosite.dat", "file": "geosite.dat" }
+    ]
+  }
 }
 ```
 
@@ -44,6 +48,10 @@ The list of geodata files to download and replace.
 
 If reloading fails after the download, all files replaced by this update are rolled back together.
 
+::: tip
+If `assets` is not configured, the scheduled task only reloads the existing files and performs no downloads. You can still update these files by other means and let Xray reload them on schedule, but this is generally not recommended. Letting Xray download them itself works with the rollback mechanism to avoid startup failures caused by broken files.
+:::
+
 ### AssetObject
 
 ```json
@@ -62,3 +70,4 @@ The resource download URL. It must be an HTTPS URL.
 The resource filename to write, such as `geoip.dat` or `geosite.dat`.
 
 The file is resolved using the [Resource File Path](./features/env.md#resource-file-path). It must be an existing regular file inside the resource directory; absolute paths and paths escaping the resource directory are not supported.
+

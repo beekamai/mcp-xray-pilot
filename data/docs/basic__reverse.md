@@ -1,13 +1,18 @@
 ---
 url: https://xtls.github.io/en/config/reverse.html
 source_url: https://raw.githubusercontent.com/XTLS/Xray-docs-next/main/docs/en/config/reverse.md
-title: Reverse Proxy
+title: Legacy Reverse Proxy
 category: basic
 slug: reverse
-fetched_at: 2026-05-04T18:42:41.609Z
+fetched_at: 2026-06-29T11:18:34.024Z
 ---
-# Reverse Proxy
+# Legacy Reverse Proxy
 
+::: danger
+The legacy reverse proxy has been deprecated. Please use the [VLESS reverse proxy](/en/document/level-2/vless_reverse.md).
+:::
+
+:::: details Legacy reverse proxy documentation (deprecated)
 A reverse proxy can forward traffic from the server side to the client side, effectively performing reverse traffic forwarding.
 
 ::: tip
@@ -124,13 +129,15 @@ The `bridge` usually requires two outbounds: one for connecting to the `portal` 
 Reverse Proxy Configuration:
 
 ```json
-"reverse": {
-  "bridges": [
-    {
-      "tag": "bridge",
-      "domain": "reverse-proxy.xray.internal"
-    }
-  ]
+{
+  "reverse": {
+    "bridges": [
+      {
+        "tag": "bridge",
+        "domain": "reverse-proxy.xray.internal"
+      }
+    ]
+  }
 }
 ```
 
@@ -202,13 +209,15 @@ The `portal` usually requires two inbounds: one to receive connections from the 
 Reverse Proxy Configuration:
 
 ```json
-"reverse": {
-  "portals": [
-    {
-      "tag": "portal",
-      "domain": "reverse-proxy.xray.internal" // Must be the same as the bridge configuration
-    }
-  ]
+{
+  "reverse": {
+    "portals": [
+      {
+        "tag": "portal",
+        "domain": "reverse-proxy.xray.internal" // Must be the same as the bridge configuration
+      }
+    ]
+  }
 }
 ```
 
@@ -219,11 +228,11 @@ Inbounds:
   // Directly receive requests from the public internet
   "tag": "external",
   "port": 80,
-  "protocol": "dokodemo-door",
+  "protocol": "tunnel",
   "settings": {
-    "address": "127.0.0.1",
-    "port": 80,
-    "network": "tcp"
+    "allowedNetwork": "tcp",
+    "rewriteAddress": "127.0.0.1",
+    "rewritePort": 80
   }
 }
 ```
@@ -235,7 +244,7 @@ Inbounds:
   "port": 1024,
   "protocol": "vmess",
   "settings": {
-    "clients": [
+    "users": [
       {
         "id": "5783a3e7-e373-51cd-8642-c83782b807c5"
       }
@@ -266,3 +275,6 @@ Routing Configuration:
   ]
 }
 ```
+
+::::
+

@@ -4,7 +4,7 @@ source_url: https://raw.githubusercontent.com/XTLS/Xray-docs-next/main/docs/en/c
 title: mKCP
 category: transports
 slug: transports/mkcp
-fetched_at: 2026-05-04T18:43:03.280Z
+fetched_at: 2026-06-29T11:18:45.855Z
 ---
 # mKCP
 
@@ -18,22 +18,34 @@ Please ensure that the firewall configuration on the host is correct.
 
 ## KcpObject
 
-`KcpObject` corresponds to the `kcpSettings` item in the transport configuration.
+`KcpObject` corresponds to the `kcpSettings` item in [`StreamSettingsObject`](../transport.md#streamsettingsobject).
 
 ```json
 {
-  "mtu": 1350,
-  "tti": 20,
-  "uplinkCapacity": 5,
-  "downlinkCapacity": 20,
-  "congestion": false,
-  "readBufferSize": 1,
-  "writeBufferSize": 1
+  // outbound example; also applies to inbound
+  "outbounds": [
+    {
+      // ...
+      "streamSettings": {
+        "network": "mkcp",
+        // [!code focus:9]
+        "kcpSettings": {
+          "mtu": 1350,
+          "tti": 20,
+          "uplinkCapacity": 5,
+          "downlinkCapacity": 20,
+          "congestion": false,
+          "readBufferSize": 1,
+          "writeBufferSize": 1
+        }
+      }
+    }
+  ]
 }
 ```
 
-::: TIP
-The `header` and `seed` fields have been removed. Please use [FinalMask](../transport.md#finalmaskobject) for configuration.
+::: tip
+The `header` and `seed` fields have been removed. Please use [FinalMask](./finalmask.md#finalmaskobject) for configuration.
 
 Additionally, the previously default mKCP obfuscation has also been removed. To connect to a legacy server, you need to configure `mkcp-original` in FinalMask.
 :::
@@ -123,3 +135,4 @@ The native KCP protocol sends acknowledgement (ACK) packets only once. If an ACK
 mKCP can effectively open and close connections. When the remote host actively closes the connection, the connection is released within two seconds; when the remote host disconnects, the connection is released within a maximum of 30 seconds.
 
 Native KCP does not support this scenario.
+

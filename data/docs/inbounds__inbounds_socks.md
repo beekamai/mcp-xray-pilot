@@ -4,7 +4,7 @@ source_url: https://raw.githubusercontent.com/XTLS/Xray-docs-next/main/docs/en/c
 title: Socks
 category: inbounds
 slug: inbounds/socks
-fetched_at: 2026-05-04T18:42:50.715Z
+fetched_at: 2026-06-29T11:18:38.987Z
 ---
 # Socks
 
@@ -18,18 +18,29 @@ A more meaningful usage of `Socks` inbound is to listen within a LAN or on the l
 
 ## InboundConfigurationObject
 
+`InboundConfigurationObject` corresponds to the `settings` item in [`InboundObject`](../inbound.md).
+
 ```json
 {
-  "auth": "noauth",
-  "accounts": [
+  "inbounds": [
     {
-      "user": "my-username",
-      "pass": "my-password"
+      // ...
+      "protocol": "socks",
+      // [!code focus:12]
+      "settings": {
+        "auth": "noauth",
+        "users": [
+          {
+            "user": "my-username",
+            "pass": "my-password"
+          }
+        ],
+        "udp": false,
+        "ip": "127.0.0.1",
+        "userLevel": 0
+      }
     }
-  ],
-  "udp": false,
-  "ip": "127.0.0.1",
-  "userLevel": 0
+  ]
 }
 ```
 
@@ -41,7 +52,7 @@ When using password, HTTP requests sent to this inbound will also require the sa
 
 Default value is `"noauth"`.
 
-> `accounts`: \[ [AccountObject](#accountobject) \]
+> `users`: \[ [UserObject](#userobject) \]
 
 An array where each element is a user account.
 
@@ -69,7 +80,7 @@ User level. Connections will use the [Local Policy](../policy.md#levelpolicyobje
 
 The value of `userLevel` corresponds to the value of `level` in [policy](../policy.md#policyobject). If not specified, the default is 0.
 
-### AccountObject
+### UserObject
 
 ```json
 {
@@ -85,3 +96,4 @@ Username, string type. Required.
 > `pass`: string
 
 Password, string type. Required.
+

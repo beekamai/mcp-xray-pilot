@@ -4,7 +4,7 @@ source_url: https://raw.githubusercontent.com/XTLS/Xray-docs-next/main/docs/en/c
 title: Shadowsocks
 category: inbounds
 slug: inbounds/shadowsocks
-fetched_at: 2026-05-04T18:42:50.217Z
+fetched_at: 2026-06-29T11:18:38.705Z
 ---
 # Shadowsocks
 
@@ -37,21 +37,30 @@ Under the "none" encryption method, traffic will be transmitted in plain text. T
 
 ## InboundConfigurationObject
 
+`InboundConfigurationObject` corresponds to the `settings` item in [`InboundObject`](../inbound.md).
+
 ```json
 {
-  "settings": {
-    "network": "tcp,udp",
-    "method": "aes-256-gcm",
-    "password": "114514",
-    "level": 0,
-    "email": "love@xray.com",
-    "clients": [
-      {
-        "password": "1919810",
-        "method": "aes-128-gcm"
+  "inbounds": [
+    {
+      // ...
+      "protocol": "shadowsocks",
+      // [!code focus:13]
+      "settings": {
+        "network": "tcp,udp",
+        "method": "aes-256-gcm",
+        "password": "114514",
+        "level": 0,
+        "email": "love@xray.com",
+        "users": [
+          {
+            "password": "1919810",
+            "method": "aes-128-gcm"
+          }
+        ]
       }
-    ]
-  }
+    }
+  ]
 }
 ```
 
@@ -59,7 +68,7 @@ Under the "none" encryption method, traffic will be transmitted in plain text. T
 
 The network type that the server port **listens** on. The default value is `"tcp"`.
 
-Note that this is only for listening; it mainly affects and controls the native UDP transmission of Shadowsocks. Setting it to `"tcp"` does not mean the inbound will reject UDP proxy requests. UDP proxy requests can still be wrapped into TCP packets by Shadowsocks outbound features like UoT or mux.cool and sent to the server, and are not controlled by this option.
+Note that this is only for listening; it mainly affects and controls the native UDP transmission of Shadowsocks. Setting it to `"tcp"` does not mean the inbound will reject UDP proxy requests, because UDP proxy requests can still be wrapped into TCP packets by XUDP in Mux.Cool and sent to the server.
 
 > `method`: string
 
@@ -71,21 +80,21 @@ Required.
 
 - Shadowsocks 2022
 
-Uses a pre-shared key similar to WireGuard as the password.
+  Uses a pre-shared key similar to WireGuard as the password.
 
-Use `openssl rand -base64 <length>` to generate a key compatible with shadowsocks-rust. The length depends on the encryption method used.
+  Use `openssl rand -base64 <length>` to generate a key compatible with shadowsocks-rust. The length depends on the encryption method used.
 
-| Encryption Method             | Key Length |
-| ----------------------------- | ---------: |
-| 2022-blake3-aes-128-gcm       |         16 |
-| 2022-blake3-aes-256-gcm       |         32 |
-| 2022-blake3-chacha20-poly1305 |         32 |
+  | Encryption Method             | Key Length |
+  | ----------------------------- | ---------: |
+  | 2022-blake3-aes-128-gcm       |         16 |
+  | 2022-blake3-aes-256-gcm       |         32 |
+  | 2022-blake3-chacha20-poly1305 |         32 |
 
-In the Go implementation, 32-byte keys always work.
+  In the Go implementation, 32-byte keys always work.
 
 - Other encryption methods
 
-Any string. There is no limit on password length, but short passwords are more likely to be cracked. It is recommended to use passwords of 16 characters or longer.
+  Any string. There is no limit on password length, but short passwords are more likely to be cracked. It is recommended to use passwords of 16 characters or longer.
 
 > `level`: number
 
@@ -96,7 +105,15 @@ The value of `level` corresponds to the `level` value in [policy](../policy.md#l
 
 User email, used to distinguish traffic from different users (logs, statistics).
 
-## ClientObject
+> `users`: [ [UserObject](#userobject) ]
+
+An array representing a group of users recognized by the server.
+
+Each item in the array is a [UserObject](#userobject).
+
+When this option exists, it indicates that multi-user mode is enabled.
+
+### UserObject
 
 ```json
 {
@@ -107,12 +124,17 @@ User email, used to distinguish traffic from different users (logs, statistics).
 }
 ```
 
-When this option exists, it indicates that multi-user mode is enabled.
+> `method`: string
 
-When the `method` in `InboundConfigurationObject` is not an SS2022 option, you can specify `"method"` for each user here (only non-SS2022 options are supported in `"method"`) along with `"password"` (at the same time, the `"password"` set in `InboundConfigurationObject` will be ignored).
+- When the `method` in `InboundConfigurationObject` is not an SS2022 option, you can specify `"method"` for each user here (only non-SS2022 options are supported in `"method"`) together with `"password"` (in that case, the `"password"` set in `InboundConfigurationObject` will be ignored).
 
-When the `method` in `InboundConfigurationObject` is an SS2022 option, for security reasons, setting `"method"` for individual users is no longer supported. It is unified to the `"method"` specified in `InboundConfigurationObject`.
+- When the `method` in `InboundConfigurationObject` is an SS2022 option, for security reasons, setting `"method"` for individual users is no longer supported. It is unified to the `"method"` specified in `InboundConfigurationObject`.
+
+> `password`: string
 
 Note that SS2022 does not ignore the upper-level `"password"` like the old SS did. The correct password format for the client should be `ServerPassword:UserPassword`. For example: `"password": "114514:1919810"`.
 
-The remaining options have the same meaning as in `InboundConfigurationObject`.
+> Remaining options
+
+Have the same meaning as in `InboundConfigurationObject`.
+
