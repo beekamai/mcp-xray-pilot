@@ -4,7 +4,7 @@ source_url: https://raw.githubusercontent.com/XTLS/Xray-docs-next/main/docs/en/c
 title: Shadowsocks
 category: outbounds
 slug: outbounds/shadowsocks
-fetched_at: 2026-05-04T18:42:57.244Z
+fetched_at: 2026-09-07T12:16:21.627Z
 ---
 # Shadowsocks
 
@@ -22,7 +22,6 @@ Current compatibility is as follows:
   - aes-128-gcm
   - chacha20-poly1305 (or chacha20-ietf-poly1305)
   - xchacha20-poly1305 (or xchacha20-ietf-poly1305)
-  - none (or plain)
 
 The Shadowsocks 2022 new protocol format improves performance and includes complete replay protection, resolving the following security issues of the old protocol:
 
@@ -31,22 +30,27 @@ The Shadowsocks 2022 new protocol format improves performance and includes compl
 - No UDP replay protection
 - TCP behavior that can be used for active probing
 
-::: danger
-Under the "none" encryption method, traffic will be transmitted in plain text. To ensure security, do not use it on public networks.
-:::
-
 ## OutboundConfigurationObject
+
+`OutboundConfigurationObject` corresponds to the `settings` item in [`OutboundObject`](../outbound.md).
 
 ```json
 {
-  "email": "love@xray.com",
-  "address": "127.0.0.1",
-  "port": 1234,
-  "method": "Encryption Method",
-  "password": "Password",
-  "uot": true,
-  "UoTVersion": 2,
-  "level": 0
+  "outbounds": [
+    {
+      // ...
+      "protocol": "shadowsocks",
+      // [!code focus:8]
+      "settings": {
+        "email": "love@xray.com",
+        "address": "127.0.0.1",
+        "port": 1234,
+        "method": "Encryption Method",
+        "password": "Password",
+        "level": 0
+      }
+    }
+  ]
 }
 ```
 
@@ -69,16 +73,6 @@ Shadowsocks encryption method. Required.
 > `password`: string
 
 Shadowsocks authentication password. Required.
-
-> `uot`: bool
-
-Enable `udp over tcp`.
-
-> `UoTVersion`: number
-
-Implementation version of `UDP over TCP`.
-
-Current optional values: `1`, `2`.
 
 - Shadowsocks 2022
 
@@ -103,3 +97,4 @@ Any string. There is no limit on password length, but short passwords are more l
 User level. The connection will use the [local policy](../policy.md#levelpolicyobject) corresponding to this user level.
 
 The value of `level` corresponds to the `level` value in [policy](../policy.md#policyobject). If not specified, the default is 0.
+

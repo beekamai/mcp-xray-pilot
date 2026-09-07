@@ -4,7 +4,7 @@ source_url: https://raw.githubusercontent.com/XTLS/Xray-docs-next/main/docs/en/c
 title: Local Policy
 category: basic
 slug: policy
-fetched_at: 2026-05-04T18:42:41.083Z
+fetched_at: 2026-09-07T12:16:10.798Z
 ---
 # Local Policy
 
@@ -19,10 +19,10 @@ Local policy allows setting different user levels and corresponding policy setti
   "policy": {
     "levels": {
       "0": {
-        "handshake": 4,
+        "handshake": 60,
         "connIdle": 300,
-        "uplinkOnly": 2,
-        "downlinkOnly": 5,
+        "uplinkOnly": 1,
+        "downlinkOnly": 1,
         "statsUserUplink": false,
         "statsUserDownlink": false,
         "statsUserOnline": false,
@@ -55,10 +55,10 @@ Xray system-level policies.
 
 ```json
 {
-  "handshake": 4,
+  "handshake": 60,
   "connIdle": 300,
-  "uplinkOnly": 2,
-  "downlinkOnly": 5,
+  "uplinkOnly": 1,
+  "downlinkOnly": 1,
   "statsUserUplink": false,
   "statsUserDownlink": false,
   "bufferSize": 10240
@@ -67,7 +67,7 @@ Xray system-level policies.
 
 > `handshake`: number
 
-Handshake time limit when establishing a connection. Unit is seconds. Default value is `4`. When an inbound proxy processes a new connection, if the time used during the handshake phase exceeds this time, the connection is interrupted.
+Handshake time limit when establishing a connection. Unit is seconds. Default value is `60`. When an inbound proxy processes a new connection, if the time used during the handshake phase exceeds this time, the connection is interrupted.
 
 > `connIdle`: number
 
@@ -75,11 +75,11 @@ Connection idle time limit. Unit is seconds. Default value is `300`. When an inb
 
 > `uplinkOnly`: number
 
-Time limit after the downlink connection is closed. Unit is seconds. Default value is `2`. When the server (such as a remote website) closes the downlink connection, the outbound proxy will interrupt the connection after waiting for the `uplinkOnly` time.
+Time limit after the downlink connection is closed. Unit is seconds. Default value is `1`. When the server (such as a remote website) closes the downlink connection, the outbound proxy will interrupt the connection after waiting for the `uplinkOnly` time.
 
 > `downlinkOnly`: number
 
-Time limit after the uplink connection is closed. Unit is seconds. Default value is `5`. When the client (such as a browser) closes the uplink connection, the inbound proxy will interrupt the connection after waiting for the `downlinkOnly` time.
+Time limit after the uplink connection is closed. Unit is seconds. Default value is `1`. When the client (such as a browser) closes the uplink connection, the inbound proxy will interrupt the connection after waiting for the `downlinkOnly` time.
 
 ::: tip
 In HTTP browsing scenarios, `uplinkOnly` and `downlinkOnly` can be set to `0` to improve connection closing efficiency.
@@ -92,6 +92,10 @@ When set to `true`, enables uplink traffic statistics for all users of the curre
 > `statsUserDownlink`: true | false
 
 When set to `true`, enables downlink traffic statistics for all users of the current level.
+
+> `statsUserOnline`: true | false
+
+When set to `true`, enables online user count statistics for all users of the current level. (Online criteria: connection activity within 20 seconds).
 
 > `statsUserOnline`: true | false
 > When set to `true`, enables online user count statistics for all users of the current level. (Online criteria: connection activity within 20 seconds).
@@ -138,3 +142,4 @@ When set to `true`, enables uplink traffic statistics for all outbound proxies.
 > `statsOutboundDownlink`: true | false
 
 When set to `true`, enables downlink traffic statistics for all outbound proxies.
+

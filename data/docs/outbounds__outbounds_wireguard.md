@@ -4,7 +4,7 @@ source_url: https://raw.githubusercontent.com/XTLS/Xray-docs-next/main/docs/en/c
 title: Wireguard
 category: outbounds
 slug: outbounds/wireguard
-fetched_at: 2026-05-04T18:42:59.805Z
+fetched_at: 2026-09-07T12:16:23.162Z
 ---
 # Wireguard
 
@@ -16,26 +16,36 @@ Standard Wireguard protocol implementation.
 
 ## OutboundConfigurationObject
 
+`OutboundConfigurationObject` corresponds to the `settings` item in [`OutboundObject`](../outbound.md).
+
 ```json
 {
-  "secretKey": "PRIVATE_KEY",
-  "address": [
-    // optional, default ["10.0.0.1", "fd59:7153:2388:b5fd:0000:0000:0000:0001"]
-    "IPv4_CIDR",
-    "IPv6_CIDR",
-    "and more..."
-  ],
-  "peers": [
+  "outbounds": [
     {
-      "endpoint": "ENDPOINT_ADDR",
-      "publicKey": "PUBLIC_KEY"
+      // ...
+      "protocol": "wireguard",
+      // [!code focus:19]
+      "settings": {
+        "secretKey": "PRIVATE_KEY",
+        "address": [
+          // optional, default ["10.0.0.1", "fd59:7153:2388:b5fd:0000:0000:0000:0001"]
+          "IPv4_CIDR",
+          "IPv6_CIDR",
+          "and more..."
+        ],
+        "peers": [
+          {
+            "endpoint": "ENDPOINT_ADDR",
+            "publicKey": "PUBLIC_KEY"
+          }
+        ],
+        "noKernelTun": false,
+        "mtu": 1420, // optional, default 1420
+        "reserved": [1, 2, 3],
+        "domainStrategy": "ForceIP"
+      }
     }
-  ],
-  "noKernelTun": false,
-  "mtu": 1420, // optional, default 1420
-  "reserved": [1, 2, 3],
-  "workers": 2, // optional, default runtime.NumCPU()
-  "domainStrategy": "ForceIP"
+  ]
 }
 ```
 
@@ -88,10 +98,6 @@ The structure of a Wireguard packet is as follows:
 
 Wireguard reserved bytes, fill as needed.
 
-> `workers`: int
-
-Number of threads used by Wireguard. Defaults to the number of system cores.
-
 > `peers`: \[ [Peers](#peers) \]
 
 List of Wireguard servers, where each item is a server configuration.
@@ -139,3 +145,4 @@ Heartbeat interval in seconds. Default is 0, meaning no heartbeat.
 > `allowedIPs`: string array
 
 Wireguard only allows traffic from specific source IPs.
+

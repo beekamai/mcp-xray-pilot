@@ -4,7 +4,7 @@ source_url: https://raw.githubusercontent.com/XTLS/Xray-docs-next/main/docs/en/c
 title: VMess
 category: inbounds
 slug: inbounds/vmess
-fetched_at: 2026-05-04T18:42:52.214Z
+fetched_at: 2026-09-07T12:16:18.419Z
 ---
 # VMess
 
@@ -16,34 +16,45 @@ VMess depends on system time. Please ensure that the system UTC time of the devi
 
 ## InboundConfigurationObject
 
+`InboundConfigurationObject` corresponds to the `settings` item in [`InboundObject`](../inbound.md).
+
 ```json
 {
-  "clients": [
+  "inbounds": [
     {
-      "id": "5783a3e7-e373-51cd-8642-c83782b807c5",
-      "level": 0,
-      "email": "love@xray.com"
+      // ...
+      "protocol": "vmess",
+      // [!code focus:12]
+      "settings": {
+        "users": [
+          {
+            "id": "5783a3e7-e373-51cd-8642-c83782b807c5",
+            "level": 0,
+            "email": "love@xray.com"
+          }
+        ],
+        "default": {
+          "level": 0
+        }
+      }
     }
-  ],
-  "default": {
-    "level": 0
-  }
+  ]
 }
 ```
 
-> `clients`: \[ [ClientObject](#clientobject) \]
+> `users`: \[ [UserObject](#userobject) \]
 
 An array representing a group of users accepted by the server.
 
-Each item is a [ClientObject](#clientobject).
+Each item is a [UserObject](#userobject).
 
 When this configuration is used for dynamic ports, Xray will automatically create users.
 
 > `default`: [DefaultObject](#defaultobject)
 
-Optional. Default configuration for clients. Only valid when used in conjunction with `detour`.
+Optional. Default configuration for `users`. Only valid when used in conjunction with `detour`.
 
-### ClientObject
+### UserObject
 
 ```json
 {
@@ -62,7 +73,8 @@ A custom string and its mapped UUID are equivalent. This means you can identify 
 
 - Write `"id": "我爱🍉老师1314"`,
 - Or write `"id": "5783a3e7-e373-51cd-8642-c83782b807c5"` (This UUID is the UUID mapping of `我爱🍉老师1314`)
-  :::
+
+:::
 
 The mapping standard is described in [VLESS UUID Mapping Standard: Mapping Custom Strings to UUIDv5](https://github.com/XTLS/Xray-core/issues/158).
 
@@ -93,3 +105,4 @@ User email address, used to distinguish traffic from different users.
 User level. The connection will use the [Local Policy](../policy.md#levelpolicyobject) corresponding to this user level.
 
 The value of `level` corresponds to the value of `level` in [policy](../policy.md#policyobject). If not specified, it defaults to 0.
+

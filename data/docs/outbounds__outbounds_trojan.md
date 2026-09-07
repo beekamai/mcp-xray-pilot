@@ -4,27 +4,38 @@ source_url: https://raw.githubusercontent.com/XTLS/Xray-docs-next/main/docs/en/c
 title: Trojan
 category: outbounds
 slug: outbounds/trojan
-fetched_at: 2026-05-04T18:42:58.256Z
+fetched_at: 2026-09-07T12:16:22.230Z
 ---
 # Trojan
 
 [Trojan](https://trojan-gfw.github.io/trojan/protocol) protocol.
 
-::: danger
-Trojan is designed to work over a correctly configured encrypted TLS tunnel.
-:::
-
 ## OutboundConfigurationObject
+
+`OutboundConfigurationObject` corresponds to the `settings` item in [`OutboundObject`](../outbound.md).
 
 ```json
 {
-  "address": "127.0.0.1",
-  "port": 1234,
-  "password": "password",
-  "email": "love@xray.com",
-  "level": 0
+  "outbounds": [
+    {
+      // ...
+      "protocol": "trojan",
+      // [!code focus:7]
+      "settings": {
+        "address": "127.0.0.1",
+        "port": 1234,
+        "password": "password",
+        "email": "love@xray.com",
+        "level": 0
+      }
+    }
+  ]
 }
 ```
+
+::: warning
+Trojan must be used with transport-security [TLS](https://xtls.github.io/config/transports/tls.html); using `streamSettings.security: "none"` is only allowed when the peer is a private address (such as a private IP address or private domain name) and the link itself is trusted. In public environments, Mux is also required; otherwise, once the inner payload is itself TLS, it becomes TiT and can be easily detected ([PoC](https://github.com/XTLS/Trojan-killer)).
+:::
 
 > `address`: address
 
@@ -47,3 +58,4 @@ Email address. Optional, used to identify the user.
 User level. Connections will use the [Local Policy](../policy.md#levelpolicyobject) corresponding to this user level.
 
 The value of `level` corresponds to the value of `level` in [policy](../policy.md#policyobject). If not specified, it defaults to 0.
+

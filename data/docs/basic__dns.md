@@ -4,7 +4,7 @@ source_url: https://raw.githubusercontent.com/XTLS/Xray-docs-next/main/docs/en/c
 title: Built-in DNS Server
 category: basic
 slug: dns
-fetched_at: 2026-05-04T18:42:38.958Z
+fetched_at: 2026-09-07T12:16:09.342Z
 ---
 # Built-in DNS Server
 
@@ -103,9 +103,10 @@ A static IP mapping. The value consists of entries in the form `"domain": "addre
 The mapping target may be a domain name. When the core finishes matching and the mapping contains domain name(s), the behavior is slightly different:
 
 - If the mapping contains both IP addresses and domain names, the domain names are removed and only the IP addresses are returned.
-- If the mapping contains several domain names, the result is ambiguous: the match fails, is treated as a miss, and the DNS query phase is entered.
+- If the mapping contains several domain names, the result is ambiguous: the query fails.
 - If the mapping contains exactly one domain name, that domain will be fed back into the Hosts module for recursive resolution, repeating the above steps with a maximum recursion depth of 5.
 - If the above recursive resolution yields no IPs, and the final resolution result contains exactly one domain name, that domain replaces the original requested domain and is sent to the DNS query phase.
+- In particular, if the "domain" is in the form of a hash followed by a number (such as `#3`), any request matched by this entry will fail immediately. If the request comes from the DNS outbound, the core will return an empty response with the rcode corresponding to that number to reject the request.
 
 The matching format (`domain:`, `full:`, etc.) is the same as the domain in the commonly used [Routing System](./routing.md#ruleobject). The difference is that without a prefix, it defaults to using the `full:` prefix (similar to the common hosts file syntax).
 
@@ -158,28 +159,26 @@ The default value `UseIP` allows querying both A + AAAA records. When a query in
 `UseSystem` adapts to the operating system's network environment. Before querying, it checks whether there are IPv4 and IPv6 default gateways, thereby limiting the capabilities of all servers and setting the default query type. It checks in real-time on graphical OS environments and only once on command-line environments.
 
 ```json
-    "dns": {
-        "servers": [
-            "https://1.1.1.1/dns-query",
-            {
-                "address": "https://8.8.8.8/dns-query",
-                "domains": [
-                    "geosite:netflix"
-                ],
-                "skipFallback": true,
-                "queryStrategy": "UseIPv4" // netflix domain queries A record
-            },
-            {
-                "address": "https://1.1.1.1/dns-query",
-                "domains": [
-                    "geosite:openai"
-                ],
-                "skipFallback": true,
-                "queryStrategy": "UseIPv6" // openai domain queries AAAA record
-            }
-        ],
-        "queryStrategy": "UseIP" // Globally query both A and AAAA records
-    }
+{
+  "dns": {
+    "servers": [
+      "https://1.1.1.1/dns-query",
+      {
+        "address": "https://8.8.8.8/dns-query",
+        "domains": ["geosite:netflix"],
+        "skipFallback": true,
+        "queryStrategy": "UseIPv4" // netflix domain queries A record
+      },
+      {
+        "address": "https://1.1.1.1/dns-query",
+        "domains": ["geosite:openai"],
+        "skipFallback": true,
+        "queryStrategy": "UseIPv6" // openai domain queries AAAA record
+      }
+    ],
+    "queryStrategy": "UseIP" // Globally query both A and AAAA records
+  }
+}
 ```
 
 ::: tip TIP 1
@@ -197,20 +196,20 @@ Global `"queryStrategy": "UseIP"` does not conflict with sub-item `"queryStrateg
 Global `"queryStrategy": "UseIP"` does not conflict with sub-item `"queryStrategy": "UseIPv4"`.
 
 ```json
-    "dns": {
-        "servers": [
-            "https://1.1.1.1/dns-query",
-            {
-                "address": "https://8.8.8.8/dns-query",
-                "domains": [
-                    "geosite:netflix"
-                ],
-                "skipFallback": true,
-                "queryStrategy": "UseIPv6" // Global "UseIPv4" conflicts with sub-item "UseIPv6"
-            }
-        ],
-        "queryStrategy": "UseIPv4"
-    }
+{
+  "dns": {
+    "servers": [
+      "https://1.1.1.1/dns-query",
+      {
+        "address": "https://8.8.8.8/dns-query",
+        "domains": ["geosite:netflix"],
+        "skipFallback": true,
+        "queryStrategy": "UseIPv6" // Global "UseIPv4" conflicts with sub-item "UseIPv6"
+      }
+    ],
+    "queryStrategy": "UseIPv4"
+  }
+}
 ```
 
 The sub-item query for the Netflix domain returns an empty response due to the conflicting `"queryStrategy"` value. The Netflix domain is then queried by `https://1.1.1.1/dns-query`, returning an A record.
@@ -364,3 +363,4 @@ Note: It is always constrained by the global `queryStrategy`.
 > `serveStale`: true | false
 
 > `serveExpiredTTL`: number
+
