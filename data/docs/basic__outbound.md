@@ -4,7 +4,7 @@ source_url: https://raw.githubusercontent.com/XTLS/Xray-docs-next/main/docs/en/c
 title: Outbound Proxy (Mux, XUDP)
 category: basic
 slug: outbound
-fetched_at: 2026-05-04T18:42:40.576Z
+fetched_at: 2026-09-28T13:39:32.356Z
 ---
 # Outbound Proxy (Mux, XUDP)
 
@@ -27,10 +27,6 @@ The first element in the list serves as the primary outbound. When a routing mat
       "settings": {},
       "tag": "identifier",
       "streamSettings": {},
-      "proxySettings": {
-        "tag": "another-outbound-tag",
-        "transportLayer": false
-      },
       "mux": {},
       "targetStrategy": "AsIs"
     }
@@ -48,6 +44,8 @@ You need to correctly configure the network access method, routing table, and ke
 For networks using NDP access, it is not recommended to set a subnet smaller than `/120`. Otherwise, it may cause issues such as NDP flooding, leading to the router's neighbor cache becoming full.
 
 Special value `origin`: If this value is used, the request will be sent using the IP address of the local machine that received the connection.
+
+Special value `srcip`: If this value is used, the request will be sent using the source IP address of the inbound connection.
 
 For example, if the machine has a full IPv4 range `11.4.5.0/24` and listens on `0.0.0.0` (all IPv4 and IPv6 on the network interface), if a client connects to the local machine via `11.4.5.14`, the outbound request will also be sent via `11.4.5.14`. If the client connects via `11.4.5.10`, the outbound request will be sent via `11.4.5.10`. This also applies to cases where the machine has a full range/multiple IPv6 addresses.
 
@@ -69,13 +67,9 @@ The identifier for this outbound connection, used to locate this connection in o
 When not empty, its value must be **unique** among all `tag`s.
 :::
 
-> `streamSettings`: [StreamSettingsObject](./transport.md#streamsettingsobject)
+> `streamSettings`: [StreamSettingsObject](./transport.md)
 
-The underlying transport method is the way the current Xray node connects with other nodes.
-
-> `proxySettings`: [ProxySettingsObject](#proxysettingsobject)
-
-Outbound proxy configuration.
+Transport configuration for this outbound.
 
 > `mux`: [MuxObject](#muxobject)
 
@@ -83,37 +77,15 @@ Specific configuration related to Mux.
 
 > `targetStrategy`: "AsIs" | "UseIP" | "UseIPv6v4" | "UseIPv6" | "UseIPv4v6" | "UseIPv4" | "ForceIP" | "ForceIPv6v4" | "ForceIPv6" | "ForceIPv4v6" | "ForceIPv4"
 
-If this outbound attempts to send a domain request, this controls whether it is resolved/how it is resolved to an IP before sending.
+Applies to outbounds other than Freedom. Controls whether the target domain name in a proxied request is resolved locally to an IP and which resolution strategy is used.
 
-The default value is `AsIs`, meaning it is sent to the remote server as is. All parameter meanings are roughly equivalent to `domainStrategy` in [sockopt](./transport.md#sockoptobject).
+The default value is `AsIs`, which sends the target domain name unchanged to the remote server. The strategies have essentially the same meanings as `domainStrategy` in [Sockopt](./transports/sockopt.md#sockoptobject).
 
 ::: tip
-This controls **proxied requests**. If the address of the outbound proxy server is a domain name, and you need to select a resolution strategy for the domain name itself, you should configure `domainStrategy` in [sockopt](./transport.md#sockoptobject).
+This controls **proxied requests**. If the address of the outbound proxy server is a domain name, and you need to select a resolution strategy for the domain name itself, you should configure `domainStrategy` in [Sockopt](./transports/sockopt.md#sockoptobject).
+
+Freedom's domain resolution strategy should also be configured through `sockopt.domainStrategy`.
 :::
-
-### ProxySettingsObject
-
-```json
-{
-  "tag": "another-outbound-tag",
-  "transportLayer": false
-}
-```
-
-> `tag`: string
-
-When the identifier of another outbound is specified, data sent by this outbound will be forwarded to the specified outbound for transmission.
-
-::: danger
-This option conflicts with [SockOpt.dialerProxy](./transport.md#sockoptobject). Choose one as needed.
-
-By default, this forwarding method **does not go through** the underlying transport method (REALITY/XHTTP/gRPC...), meaning the `streamSettings` of this outbound will not take effect.<br>
-If you need forwarding that supports underlying transport methods, please use `SockOpt.dialerProxy` instead or set `transportLayer` to `true`.
-:::
-
-> `transportLayer`: true | false
-
-`true` converts this setting to `SockOpt.dialerProxy` to support forwarding via underlying transport methods. The default is `false`, meaning no conversion.
 
 ### MuxObject
 
@@ -162,3 +134,4 @@ Controls how Mux handles proxied UDP/443 (QUIC) traffic:
 - Default `reject`: Rejects traffic (browsers typically fall back to TCP HTTP2 automatically).
 - `allow`: Allows traffic to go through the Mux connection.
 - `skip`: Does not use the Mux module to carry UDP 443 traffic. The proxy protocol's original UDP transmission method will be used. For example, `Shadowsocks` will use native UDP, and `VLESS` will use UoT.
+

@@ -4,8 +4,9 @@ source_url: https://raw.githubusercontent.com/XTLS/Xray-docs-next/main/docs/en/c
 title: HTTP
 category: transports
 slug: transports/http
-fetched_at: 2026-05-04T18:43:06.340Z
+fetched_at: 2026-09-28T13:39:47.131Z
 ---
 # HTTP
 
 See [XHTTP: Beyond REALITY](https://github.com/XTLS/Xray-core/discussions/4113)
+

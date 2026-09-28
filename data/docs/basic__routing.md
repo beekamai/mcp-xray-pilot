@@ -4,7 +4,7 @@ source_url: https://raw.githubusercontent.com/XTLS/Xray-docs-next/main/docs/en/c
 title: Routing
 category: basic
 slug: routing
-fetched_at: 2026-05-04T18:42:42.094Z
+fetched_at: 2026-09-28T13:39:33.251Z
 ---
 # Routing
 
@@ -32,15 +32,13 @@ For a more detailed analysis of the routing function: [Analysis of Routing (Part
 
 Domain resolution strategy. Different strategies are used based on different settings.
 
-- `"AsIs"`: No extra operation. Uses the domain in the destination address or the sniffed domain. Default value.
-- `"IPIfNonMatch"`: When no rule is matched after a full round of matching, resolve the domain to an IP and perform a second round of matching.
-- `"IPOnDemand"`: Before starting matching, resolve the domain to an IP immediately for matching.
+- `"AsIs"`: Does not perform DNS resolution. Default value.
+- `"IPIfNonMatch"`: Domain names are not resolved initially. If no rule matches after the full pass and the target includes a domain name, Xray starts a second pass. During that pass, when it encounters a rule containing an `ip` condition, it uses the built-in DNS server to resolve the domain name to IPs for matching.
+- `"IPOnDemand"`: If the target includes a domain name, Xray uses the built-in DNS server to resolve it to IPs for matching when it encounters a rule containing an `ip` condition. If resolution fails, the original destination IP is used for matching.
 
-Actual resolution behavior will be delayed until the first IP rule is encountered to reduce latency. The result will contain both IPv4 and IPv6 (you can further restrict this via `queryStrategy` in the built-in DNS). When a domain resolves to multiple IPs, each rule will try all IPs in turn. If any IP meets the requirement, the rule is considered matched.
+Resolution results contain both IPv4 and IPv6 addresses (this can be further restricted through the built-in DNS module's `queryStrategy`). When a domain name resolves to multiple IPs, each rule tries all of them in turn. If any IP meets the condition, the rule is considered matched.
 
-When `sniff` + `routeOnly` is enabled, allowing the routing system to see both IP and domain, if the aforementioned resolution occurs, the routing system can only see the IP resolved from the domain and cannot see the original destination IP, unless resolution fails.
-
-When two domains exist (target domain + sniffed result), the priority of the sniffed result is always higher, whether for resolution or domain matching.
+The original destination may be either an IP address or a domain name. When [`sniffing`](./inbound.md#sniffingobject) and `routeOnly` are enabled, the routing system can see the domain name obtained through sniffing in addition to the original destination. Therefore, even if no DNS resolution occurs, it can still use an IP already present in the original destination for rule matching. If both the original destination domain and the sniffing result are available, the sniffing result always takes precedence for both DNS resolution and domain matching.
 
 Regardless of whether resolution occurs, the routing system will not affect the actual destination address. The requested target remains the original target.
 
@@ -101,7 +99,7 @@ When multiple attributes are specified simultaneously, these attributes must be 
 - **Full match**: Starts with `"full:"`, the rest is a domain name. The rule takes effect when this domain exactly matches the target domain. For example, "full:xray.com" matches "xray.com" but not "www.xray.com".
 - **Dotless domain**: Starts with `"dotless:"`, the rest is a string that cannot contain `.`. The rule takes effect when the domain contains no `.` and this string matches any part of the target domain. For example, "dotless:pc-" matches "pc-alice", "mypc-alice". Suitable for intranet NetBIOS domains, etc. Case sensitive.
 - **Predefined domain list**: Starts with `"geosite:"`, the rest is a name, such as `geosite:google` or `geosite:cn`. Refer to [Predefined Domain List](#predefined-domain-list) for names and domain lists.
-- **Load domains from file**: In the form of `"ext:file:tag"`. Must start with `ext:` (lowercase), followed by filename and tag. The file is stored in the [Resource Directory](./features/env.md#resource-file-path). The file format is the same as `geosite.dat`, and the tag must exist in the file.
+- **Load domains from file**: In the form of `"ext:file:tag"`. Must start with `ext:` (lowercase), followed by filename and tag. The file is stored in the [Resource Directory](./env.md#resource-file-path). The file format is the same as `geosite.dat`, and the tag must exist in the file.
 
 ::: tip
 `"ext:geoip.dat:cn"` is equivalent to `"geoip:cn"`
@@ -115,7 +113,7 @@ An array, where each item represents an IP range. The rule takes effect when an 
 - **[CIDR](https://en.wikipedia.org/wiki/Classless_Inter-Domain_Routing)**: Like `"10.0.0.0/8"`. You can also use `"0.0.0.0/0"` or `"::/0"` to specify all IPv4 or IPv6.
 - **Predefined IP list**: This list is pre-installed in every Xray installation package, named `geoip.dat`. Usage is like `"geoip:cn"`. Must start with `geoip:` (lowercase), followed by a two-character country code. Supports almost all countries with internet access.
   - **Special value**: `"geoip:private"`, includes all private addresses, such as `127.0.0.1`.
-- **Load IPs from file**: In the form of `"ext:file:tag"`. Must start with `ext:` (lowercase), followed by filename and tag. The file is stored in the [Resource Directory](./features/env.md#resource-file-path). The file format is the same as `geoip.dat`, and the tag must exist in the file.
+- **Load IPs from file**: In the form of `"ext:file:tag"`. Must start with `ext:` (lowercase), followed by filename and tag. The file is stored in the [Resource Directory](./env.md#resource-file-path). The file format is the same as `geoip.dat`, and the tag must exist in the file.
 - **Inverse selection `!`**: `"!10.0.0.0/8"` means anything not in `10.0.0.0/8`, and `"!geoip:cn"` means results not in `geoip:cn`. Multiple inverse options have an `AND` relationship, while positive options, or positive options together with all inverse options, have an `OR` relationship. For example, `ip: ["!geoip:cn", "!geoip:us", "geoip:telegram"]` matches IPs that are not from the US AND not from China, OR are Telegram IPs.
 
 > `port`: number | string
@@ -144,7 +142,7 @@ Optional values are "tcp", "udp", or "tcp,udp". The rule takes effect when the c
 
 Since the core obviously only supports TCP and UDP layer 4 protocols, a routing rule containing only `"network": "tcp,udp"` can be used as a "catch-all" to match any traffic. An example usage is placing it at the very end of all routing rules to specify the default outbound when no other rules match (otherwise the core defaults to the first outbound).
 
-Of course, other ways that obviously match any traffic, such as specifying ports 1-65535 or IPs 0.0.0.0/0 + ::/0, have a similar effect.
+Of course, other ways that obviously match any traffic, such as specifying ports 1-65535, have a similar effect.
 
 > `sourceIP`: \[string\]
 
@@ -212,6 +210,8 @@ Example:
 > `process`: \[string\]
 
 If the connection originates from the local machine, match its process. If not from local, it is directly regarded as a match failure. Only supports Windows and Linux.
+
+In particular, on Android the client app needs to call `github.com/xtls/xray-core/common/net.RegisterAndroidProcessFinder()` to inject the finder provided by the Android API. This hook can customize the string returned to the core, enabling features such as app matching.
 
 This option is an array, where each item has three matching modes.
 
@@ -306,6 +306,8 @@ HTTP request headers.
 
 Load balancer configuration. When a load balancer takes effect, it selects the most suitable outbound from the specified outbounds according to the configuration and forwards the traffic.
 
+Some features require information from either of the two observatories — [observatory](./observatory.md#observatoryobject) or [burstObservatory](./observatory.md#burstobservatoryobject); see the specific descriptions.
+
 ```json
 {
   "tag": "balancer",
@@ -329,8 +331,6 @@ Generally matches multiple outbounds to distribute load among them.
 
 If all outbounds cannot be connected based on observation results, the outbound specified by this configuration item is used.
 
-Note: Requires adding [observatory](./observatory.md#observatoryobject) or [burstObservatory](./observatory.md#burstobservatoryobject) configuration items.
-
 > `strategy`: [StrategyObject](#strategyobject)
 
 #### StrategyObject
@@ -346,12 +346,13 @@ Note: Requires adding [observatory](./observatory.md#observatoryobject) or [burs
 
 - `random`: Default value. Randomly selects a matched outbound proxy.
 - `roundRobin`: Selects matched outbound proxies in order.
-- `leastPing`: Selects the matched outbound proxy with the lowest latency based on observation results. Requires [observatory](./observatory.md#observatoryobject) or [burstObservatory](./observatory.md#burstobservatoryobject).
-- `leastLoad`: Selects the most stable outbound proxy based on observation results. Requires [observatory](./observatory.md#observatoryobject) or [burstObservatory](./observatory.md#burstobservatoryobject).
 
-::: tip
-Regardless of the mode, if all nodes corresponding to its `selector` have `observatory` or `burstObservatory` configured, healthy nodes can be filtered out. If no healthy nodes are available, it attempts `fallbackTag`.
-:::
+The two strategies above can optionally use an observatory. If `fallbackTag` is set and an observatory is present, outbounds observed as unavailable will be automatically excluded (those without observation data are assumed to be alive).
+
+- `leastPing`: Selects the matched outbound proxy with the lowest latency based on observation results.
+- `leastLoad`: Selects the most stable outbound proxy based on observation results.
+
+The two strategies above must be used together with an observatory, and nodes not covered by the observatory will be directly excluded. If all are unavailable and `fallbackTag` is not set, the default outbound will be selected.
 
 > `settings`: [StrategySettingsObject](#strategysettingsobject)
 
@@ -385,7 +386,7 @@ The maximum acceptable RTT duration for speed tests.
 
 > `tolerance`: float number
 
-The maximum acceptable failure rate for speed tests. For example, 0.01 means accepting a 1% failure rate. (Seemingly unimplemented).
+The maximum acceptable failure rate for speed tests. For example, 0.01 means accepting a 1% failure rate.
 
 > `baselines`: \[ string \]
 
@@ -410,45 +411,43 @@ Weight value. The larger the value, the less likely the corresponding node is to
 ### Load Balancer Configuration Example
 
 ```json
-    "routing": {
-        "rules": [
-            {
-                "inboundTag": [
-                    "in"
-                ],
-                "balancerTag": "round"
-            }
-        ],
-        "balancers" : [
-            {
-                "selector": [
-                    "out"
-                ],
-                "strategy": {
-                    "type":"roundRobin"
-                },
-                "tag": "round"
-            }
-        ]
-    },
-
-    "inbounds": [
-        {
-            // Inbound config
-            "tag": "in"
-        }
+{
+  "routing": {
+    "rules": [
+      {
+        "inboundTag": ["in"],
+        "balancerTag": "round"
+      }
     ],
-
-    "outbounds": [
-        {
-            // Outbound config
-            "tag": "out1"
+    "balancers": [
+      {
+        "selector": ["out"],
+        "strategy": {
+          "type": "roundRobin"
         },
-        {
-            // Outbound config
-            "tag": "out2"
-        }
+        "tag": "round"
+      }
     ]
+  },
+
+  "inbounds": [
+    {
+      // Inbound config
+      "tag": "in"
+    }
+  ],
+
+  "outbounds": [
+    {
+      // Outbound config
+      "tag": "out1"
+    },
+    {
+      // Outbound config
+      "tag": "out2"
+    }
+  ]
+}
 ```
 
 ### Predefined Domain List
@@ -472,3 +471,4 @@ Common domains include:
 - `tld-!cn`: Contains top-level domains not used in mainland China, such as domains ending in `.tw` (Taiwan), `.jp` (Japan), `.sg` (Singapore), `.us` (USA), `.ca` (Canada), etc.
 
 You can also view the complete domain list here: [Domain list community](https://github.com/v2fly/domain-list-community).
+

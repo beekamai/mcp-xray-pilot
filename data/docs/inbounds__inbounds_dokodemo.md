@@ -4,8 +4,9 @@ source_url: https://raw.githubusercontent.com/XTLS/Xray-docs-next/main/docs/en/c
 title: Dokodemo-Door
 category: inbounds
 slug: inbounds/dokodemo
-fetched_at: 2026-05-04T18:42:48.732Z
+fetched_at: 2026-09-28T13:39:36.980Z
 ---
 # Dokodemo-Door
 
 See [Tunnel](./tunnel.md)
+
