@@ -4,7 +4,7 @@ source_url: https://raw.githubusercontent.com/XTLS/Xray-docs-next/main/docs/en/c
 title: Xray Outbound Protocols
 category: outbounds
 slug: outbounds/index
-fetched_at: 2026-05-04T18:42:54.250Z
+fetched_at: 2026-10-26T12:44:51.307Z
 ---
 # Xray Outbound Protocols
 
@@ -12,13 +12,15 @@ Xray supports the following outbound protocols:
 
 - [Blackhole](blackhole.md)
 - [DNS](dns.md)
-- [Freedom (fragment, noises)](freedom.md)
+- [Freedom](freedom.md)
 - [HTTP](http.md)
 - [Loopback](loopback.md)
 - [Shadowsocks](shadowsocks.md)
 - [Socks](socks.md)
 - [Trojan](trojan.md)
-- [VLESS (XTLS Vision Seed)](vless.md)
+- [VLESS](vless.md)
 - [VMess](vmess.md)
 - [WireGuard](wireguard.md)
 - [Hysteria](hysteria.md)
+- [MASQUE](masque.md)
+
