@@ -4,7 +4,7 @@ source_url: https://raw.githubusercontent.com/XTLS/Xray-docs-next/main/docs/en/c
 title: Log Configuration
 category: basic
 slug: log
-fetched_at: 2026-05-04T18:42:37.922Z
+fetched_at: 2026-11-23T17:54:23.838Z
 ---
 # Log Configuration
 
@@ -21,7 +21,7 @@ Xray has two types of logs: access logs and error logs. You can configure the ou
   "log": {
     "access": "file_path",
     "error": "file_path",
-    "loglevel": "warning",
+    "logLevel": "warning",
     "dnsLog": false,
     "maskAddress": ""
   }
@@ -40,7 +40,7 @@ The file path for the error log. Its value must be a valid file path, such as `"
 
 - Special value `none`: disables the error log.
 
-> `loglevel`: "debug" | "info" | "warning" | "error" | "none"
+> `logLevel`: "debug" | "info" | "warning" | "error" | "none"
 
 The level of the error log, indicating the information that needs to be recorded.
 The default value is `"warning"`.
@@ -65,3 +65,4 @@ Currently, the available levels are `quarter`, `half`, and `full`. The masking f
 - ipv6 `1234:5678::/32` `1234::/16` `[Masked IPv6]`
 
 For more specific requirements, you can use a custom format such as `/16+/32`. The format defines the number of bits to keep unmasked; the first number is for IPv4 and the second for IPv6. Note that the IPv4 value must be divisible by 8. Using /32 (IPv4) or /128 (IPv6) means no masking, while /0 will display as `[Masked IPv4/IPv6]`.
+

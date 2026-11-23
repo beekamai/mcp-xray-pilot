@@ -4,7 +4,7 @@ source_url: https://raw.githubusercontent.com/XTLS/Xray-docs-next/main/docs/en/c
 title: Geodata Files
 category: basic
 slug: geodata
-fetched_at: 2026-05-04T18:42:44.635Z
+fetched_at: 2026-11-23T17:54:27.381Z
 ---
 # Geodata Files
 
@@ -14,14 +14,24 @@ Use with caution on low-memory devices.
 
 ## GeodataObject
 
+`GeodataObject` corresponds to the `geodata` item in the configuration file.
+
 ```json
 {
-  "cron": "0 4 * * *",
-  "outbound": "proxy",
-  "assets": [
-    { "url": "https://example.com/geoip.dat", "file": "geoip.dat" },
-    { "url": "https://example.com/geosite.dat", "file": "geosite.dat" }
-  ]
+  "geodata": {
+    "cron": "0 4 * * *",
+    "outbound": "proxy",
+    "assets": [
+      {
+        "url": "https://github.com/XTLS/Xray-rules-dat/releases/latest/download/geoip-lite.dat.gz",
+        "file": "geoip.dat"
+      },
+      {
+        "url": "https://github.com/XTLS/Xray-rules-dat/releases/latest/download/geosite.dat.gz",
+        "file": "geosite.dat"
+      }
+    ]
+  }
 }
 ```
 
@@ -44,11 +54,15 @@ The list of geodata files to download and replace.
 
 If reloading fails after the download, all files replaced by this update are rolled back together.
 
+::: tip
+If `assets` is not configured, the scheduled task only reloads the existing files and performs no downloads. You can still update these files by other means and let Xray reload them on schedule, but this is generally not recommended. Letting Xray download them itself works with the rollback mechanism to avoid startup failures caused by broken files.
+:::
+
 ### AssetObject
 
 ```json
 {
-  "url": "https://example.com/geoip.dat",
+  "url": "https://github.com/XTLS/Xray-rules-dat/releases/latest/download/geoip-lite.dat.gz",
   "file": "geoip.dat"
 }
 ```
@@ -57,8 +71,15 @@ If reloading fails after the download, all files replaced by this update are rol
 
 The resource download URL. It must be an HTTPS URL.
 
+Both `.dat` and gzip-compressed `.dat.gz` downloads are supported. Use the compressed format to reduce data usage by 80%; the core decompresses it automatically during download.
+
+Xray provides multiple versions of geodata files. See [XTLS/Xray-rules-dat](https://github.com/XTLS/Xray-rules-dat) for download URLs for the available versions. You can also use geodata files provided by third parties.
+
+Use the [Geo Data Viewer](../tools/geofileviewer.md) to browse and search file contents.
+
 > `file`: string
 
 The resource filename to write, such as `geoip.dat` or `geosite.dat`.
 
-The file is resolved using the [Resource File Path](./features/env.md#resource-file-path). It must be an existing regular file inside the resource directory; absolute paths and paths escaping the resource directory are not supported.
+The file is resolved using the [Resource File Path](./env.md#resource-file-path). It must be an existing regular file inside the resource directory; absolute paths and paths escaping the resource directory are not supported.
+

@@ -4,8 +4,9 @@ source_url: https://raw.githubusercontent.com/XTLS/Xray-docs-next/main/docs/en/c
 title: TCP
 category: transports
 slug: transports/tcp
-fetched_at: 2026-05-04T18:43:01.793Z
+fetched_at: 2026-11-23T17:54:36.307Z
 ---
 # TCP
 
 See [RAW](./raw.md)
+
